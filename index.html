@@ -254,20 +254,20 @@
     padding:24px;
     margin-top:20px;
   }
+  /* ছবি এখন একটার নিচে একটা, বড় আকারে — সার্টিফিকেট/স্ক্রিনশট স্পষ্ট দেখা যাবে */
   .photo-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
-    gap:10px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
     margin-top:16px;
   }
   .photo-slot{
-    aspect-ratio:4/3;
-    border:1px dashed var(--gold);
-    border-radius:6px;
+    border:1px solid var(--line);
+    border-radius:8px;
     overflow:hidden;
-    background:rgba(180,137,47,0.08);
+    background:var(--paper);
   }
-  .photo-slot img{width:100%;height:100%;object-fit:cover;}
+  .photo-slot img{width:100%;height:auto;object-fit:contain;display:block;}
   .link-slot{
     display:inline-block;
     margin-top:14px;
@@ -276,17 +276,48 @@
     color:var(--clay);
     border-bottom:1px dashed var(--clay);
   }
+  /* থিওরি/ফিলোসফি টেক্সট বক্স — শুরুতে কিছুটা অংশ দেখা যাবে, নিচে fade,
+     "See more" চাপলে পুরোটা খুলবে */
   .theory-box{
     margin-top:20px;
-    border:2px dashed var(--green);
+    background:var(--paper-dark);
+    border:1px solid var(--line);
+    border-left:3px solid var(--green);
     border-radius:8px;
-    padding:40px 24px;
-    text-align:center;
-    color:var(--ink-soft);
-    font-family:var(--mono);
-    font-size:0.85rem;
-    background:rgba(63,102,68,0.06);
+    padding:26px 26px 20px;
   }
+  .theory-box p{margin:0 0 16px;}
+  .theory-box p:last-child{margin-bottom:0;}
+  .theory-text{
+    position:relative;
+    max-height:210px;
+    overflow:hidden;
+    transition:max-height .5s ease;
+  }
+  .theory-text.expanded{max-height:4000px;}
+  .theory-text::after{
+    content:"";
+    position:absolute;
+    left:0;right:0;bottom:0;
+    height:70px;
+    background:linear-gradient(to bottom, transparent, var(--paper-dark));
+    pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  .theory-text.expanded::after{opacity:0;}
+  .see-more-btn{
+    all:unset;
+    cursor:pointer;
+    margin-top:16px;
+    display:inline-block;
+    font-family:var(--mono);
+    font-size:0.8rem;
+    letter-spacing:0.05em;
+    color:var(--clay);
+    border-bottom:1px dashed var(--clay);
+    padding-bottom:2px;
+  }
+  .see-more-btn:hover{color:var(--green-deep);border-color:var(--green-deep);}
   /* এক্টিভিটি লিস্ট এখন কার্ড আকারে, প্রতিটার সাথে ৩টি ছবির স্লট */
   /* এক্টিভিটি লিস্ট — আগের মতোই সাদামাটা লিস্ট, ভিতরে কোনো ছবি নেই */
   ul.activity-list{list-style:none;padding:0;margin:20px 0 0;}
@@ -315,9 +346,12 @@
     display:block;
   }
   .activity-gallery .photo-grid{
+    display:grid;
     grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+    gap:10px;
   }
   .activity-gallery .photo-slot{aspect-ratio:1/1;}
+  .activity-gallery .photo-slot img{height:100%;object-fit:cover;}
   .skill-tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
   .skill-tags span{
     font-family:var(--mono);
@@ -452,10 +486,32 @@
 <section id="philosophy">
   <span class="eyebrow">Entry 03 — My Philosophy</span>
   <h2>My Theory &amp; My Apps</h2>
-  <p>This is where I'll write in detail about my own theory, and about the apps I've built.</p>
-  <!-- এই বক্সের ভিতরে পরে আপনার থিওরি ও অ্যাপ সম্পর্কিত বিস্তারিত লেখা বসাবেন (ইংরেজিতে লিখবেন) -->
+
+  <!-- এই বক্সের ভিতরে আপনার থিওরি/দর্শনের লেখা বসানো হয়েছে; নতুন করে লিখতে চাইলে
+       <p> ট্যাগগুলোর ভিতরের লেখা বদলে দিলেই হবে -->
   <div class="theory-box">
-    This space is intentionally left blank — add your detailed write-up about your theory and apps here later.
+    <div class="theory-text" id="theoryText">
+      <p>There has never been a better time to be a software engineer. I know a lot of you are scared because of this whole AI wave, but if you're like me, you got into coding because you loved the idea of building something real — something another person could actually use, something that might blow up and change lives… all from just a laptop and an idea.</p>
+      <p>And honestly, that dream has never been more realistic than right now. What used to need a whole team of five people can now be done by one. Things that took years of grinding syntax, reading docs, and writing every single line by hand — you can now do in a fraction of the time.</p>
+      <p>I know everywhere you look, people in the comments are saying "AI is going to wipe out all developers." But the ones getting wiped out aren't bad coders. They're just stuck in the old way of doing things, and that world is slowly disappearing.</p>
+      <p>The people who are winning right now are different. You know that guy in your class who had five internships and a job already lined up? Or the one who built something so good that a company just hired him? Or the regular backend engineer who started using AI and suddenly owns entire systems he never touched before? Or the random dev making $50 a month from a tool he built over a weekend? Or the founders building with just two people instead of twenty?</p>
+      <p>They're all winning for the same reason — they understood the new rules faster. They figured out what to build, how to build it fast, and how to use every tool available to close the gap between their ideas and reality.</p>
+      <p>So instead of getting crushed by this wave, imagine two kinds of people:</p>
+      <p>First, the spectator. For whatever reason, they never really jumped into AI. Maybe it feels too overwhelming — LLMs, RAG, agents, GPT, Claude, OpenAI, Anthropic… after a while it all just becomes noise. Or they think using AI makes them a worse programmer, so they stay away.</p>
+      <p>Then there's the surfer. The surfer gets that programming has always been about abstraction. Nobody calls you fake for using frameworks, libraries, Stack Overflow, or copying open-source code you don't fully understand. So instead of fighting the wave, they ride it.</p>
+      <p>They use AI to learn faster, experiment faster, and close the gap between what they can imagine and what they can actually ship. Maybe you're building web apps and you scaffold an entire dashboard in a day. Or you're working on a game and AI helps you understand some hard graphics concept that would've taken hours to figure out from docs.</p>
+      <p>The leverage looks different for everyone, but the surfers are always experimenting. They shorten the distance between idea and execution. They automate the boring parts, understand new codebases quickly, prototype fast, debug faster, and learn at crazy speed. Their feedback loops are super short.</p>
+      <p>And that's becoming super important — because software engineering is turning into a creativity game. The winners are the ones who notice things, connect ideas, build weird little tools nobody thought of, and chase their curiosity before the excitement fades. A few years ago, testing a big idea had huge barriers. Now a random student can lock in for a weekend and build something thousands of people end up using.</p>
+      <p>A lot of developers still haven't accepted how big this shift really is. They're still waiting to "know enough" or master one more framework. Meanwhile, the surfers are already in the water — building, testing, learning, shipping, and adjusting.</p>
+      <p>Programming isn't about manually typing every brick anymore. It's about deciding what should exist in the first place. The bottleneck now isn't "Can you write the code?" It's "Can you think clearly? Can you spot good ideas? Can you move fast and learn quickly enough to match your own ambition?"</p>
+      <p>AI doesn't remove the need for builders — it actually raises the ceiling for those who keep building.</p>
+      <p>But here's the thing — you can't just build in silence anymore. The people getting opportunities right now (internships, referrals, startup jobs, research positions) are usually the ones who are visible. They're posting their projects on LinkedIn, making short demo videos on Twitter, or just writing about what they learned — even if it's a bug, a failed project, or a random opinion.</p>
+      <p>You don't need a perfect portfolio. You just need a visible one. Companies like OpenAI or Anthropic aren't just looking for people who are "interested" — they want builders who are already in motion.</p>
+      <p>And finally, stop overthinking whether your idea is "good enough" for your resume. Stop waiting until you feel skilled enough. The people improving fastest are the ones who just use everything available — AI, templates, GitHub repos — and build anyway. Even if it feels messy, too ambitious, or not good enough. That's exactly how you grow.</p>
+      <p>The fastest way to become that kind of programmer is to stop negotiating with yourself every time you get an idea. Just build it, ship it, show it, and iterate. Slowly your confidence and identity will catch up with your actions.</p>
+      <p>And the one thing that ties all of this together is never stopping learning.</p>
+    </div>
+    <button class="see-more-btn" id="theoryToggle">See more ↓</button>
   </div>
 </section>
 
@@ -535,8 +591,8 @@
       A simple bookkeeping app for small grocery shops that instantly calculates how many
       kilograms or grams of a product a given amount of money can buy.
     </p>
-    <!-- এখানে অ্যাপের লিংক দিন (এখনো দেওয়া হয়নি, পরে বসাবেন) -->
-    <a class="link-slot" href="#">🔗 Add app link here</a>
+    <!-- এখানে অ্যাপের লিংক দিন — এটা Google Drive এর ফাইল লিংক, তাই ক্লিক করলে ভিজিটর ডাউনলোড/ভিউ করতে পারবে -->
+    <a class="link-slot" href="https://drive.google.com/file/d/1TYyndr141jkqosoyqxFowTRA1hDq6uyk/view?usp=drivesdk" target="_blank" rel="noopener">📥 Download the app</a>
     <!-- এখানে ৫টা স্ক্রিনশট বসানো হয়েছে -->
     <div class="photo-grid">
       <div class="photo-slot"><img src="https://i.ibb.co/XTFX4xv/Screenshot-20260709-005931.jpg" alt="Retail Store Calculator screenshot 1"></div>
@@ -570,13 +626,13 @@
   <div class="activity-gallery">
     <span class="gallery-label">Photos from these activities</span>
     <div class="photo-grid">
-      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+1" alt="Activity photo 1"></div>
-      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+2" alt="Activity photo 2"></div>
-      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+3" alt="Activity photo 3"></div>
-      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+4" alt="Activity photo 4"></div>
-      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+5" alt="Activity photo 5"></div>
-      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+6" alt="Activity photo 6"></div>
-      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+7" alt="Activity photo 7"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/GvQmc2vS/IMG-6103.jpg" alt="Activity photo 1"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/nJ7r4xh/IMG-6105.jpg" alt="Activity photo 2"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/x8SG4MHm/IMG-6106.jpg" alt="Activity photo 3"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/fG0WCF00/IMG-6104.jpg" alt="Activity photo 4"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/ffPFfgM/IMG-6051.jpg" alt="Activity photo 5"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/QhQvWKF/IMG-6050.jpg" alt="Activity photo 6"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/201ZkSMs/IMG-6049.jpg" alt="Activity photo 7"></div>
     </div>
   </div>
 </section>
@@ -605,8 +661,8 @@
   <span class="eyebrow">Entry 07 — Contact</span>
   <h2>Contact</h2>
   <p>Email: <a href="mailto:mizanurmm2004@gmail.com">mizanurmm2004@gmail.com</a></p>
-  <!-- এখানে আপনার GitHub প্রোফাইলের আসল লিংকটা href="#" এর জায়গায় বসান -->
-  <p>GitHub: <a class="link-slot" href="#">GitHub Profile</a></p>
+  <!-- GitHub প্রোফাইল লিংক বসানো হয়ে গেছে -->
+  <p>If you'd like to see all of my coding work, visit my GitHub: <a class="link-slot" href="https://github.com/mizanurmm2004-hue" target="_blank" rel="noopener">GitHub Profile</a></p>
 </section>
 
 <footer>
@@ -628,6 +684,18 @@
   cover.addEventListener('click', function(e){
     if(e.target !== openBtn){ openBook(); }
   });
+
+  // ============================================================
+  // Philosophy বক্সের "See more / See less" টগল
+  // ============================================================
+  const theoryText = document.getElementById('theoryText');
+  const theoryToggle = document.getElementById('theoryToggle');
+  if(theoryText && theoryToggle){
+    theoryToggle.addEventListener('click', () => {
+      const isExpanded = theoryText.classList.toggle('expanded');
+      theoryToggle.textContent = isExpanded ? 'See less ↑' : 'See more ↓';
+    });
+  }
 
   // ============================================================
   // নেভিগেশন — এখন <a href> নয়, <button data-target> ব্যবহার করা
@@ -667,4 +735,4 @@
 </script>
 
 </body>
-</html>
+  </html>
