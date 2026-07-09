@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Md. Mizanur Rahman — Field Notes of a Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Hind+Siliguri:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     ডিজাইন টোকেন (Design tokens)
+     ============================================================ */
+  :root{
+    --paper: #EFE6D4;         /* কাগজের রং */
+    --paper-dark: #E4D8BF;
+    --ink: #22281F;           /* গাঢ় সবুজ-কালো কালি */
+    --ink-soft: #4A4F41;
+    --green: #3F6644;         /* মসজিদ/মাঠের সবুজ */
+    --green-deep: #263B29;
+    --clay: #A94E2C;          /* পোড়ামাটি/ইট রং */
+    --gold: #B4892F;          /* সুতোর/বাঁধাইয়ের রং */
+    --line: rgba(34,40,31,0.18);
+    --display: 'Fraunces', serif;
+    --body: 'Hind Siliguri', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--body);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    pointer-events:none;
+    opacity:0.35;
+    background-image:
+      radial-gradient(rgba(34,40,31,0.05) 1px, transparent 1px);
+    background-size:3px 3px;
+    z-index:0;
+  }
+  h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;color:var(--green-deep);}
+  a{color:var(--clay);}
+  img{max-width:100%;display:block;}
+
+  /* ============================================================
+     বাঁধাই / নোটবুক ট্যাব নেভিগেশন (Binding + tab navigation)
+     — এখন প্রতিটা ট্যাব শুধু পেজের ভেতরে স্ক্রল করবে, কোথাও external
+       link এর মতো আচরণ করবে না। active থাকলে ট্যাবটা হাইলাইট হবে।
+     ============================================================ */
+  .binding{
+    position:fixed;
+    left:0;top:0;bottom:0;
+    width:14px;
+    background:repeating-linear-gradient(
+      to bottom, var(--gold) 0 6px, transparent 6px 18px
+    );
+    z-index:50;
+  }
+  nav.tabs{
+    position:fixed;
+    top:0;left:14px;
+    height:100vh;
+    width:76px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:6px;
+    z-index:49;
+  }
+  nav.tabs button{
+    all:unset;
+    cursor:pointer;
+    writing-mode:vertical-rl;
+    text-orientation:mixed;
+    background:var(--green);
+    color:var(--paper);
+    font-family:var(--mono);
+    font-size:0.7rem;
+    letter-spacing:0.08em;
+    padding:14px 7px;
+    border-radius:0 6px 6px 0;
+    box-shadow:2px 2px 4px rgba(0,0,0,0.15);
+    transition:transform .2s ease, background .2s ease;
+  }
+  nav.tabs button:hover{transform:translateX(4px);background:var(--clay);}
+  nav.tabs button.active{
+    background:var(--clay);
+    transform:translateX(6px);
+    box-shadow:3px 3px 6px rgba(0,0,0,0.22);
+  }
+
+  @media (max-width:760px){
+    .binding{display:none;}
+    nav.tabs{
+      top:0;left:0;right:0;height:auto;width:auto;
+      flex-direction:row;
+      overflow-x:auto;
+      background:var(--green-deep);
+      padding:8px 10px;
+      gap:8px;
+      justify-content:flex-start;
+    }
+    nav.tabs button{
+      writing-mode:horizontal-tb;
+      white-space:nowrap;
+      border-radius:6px;
+      padding:7px 12px;
+      box-shadow:none;
+    }
+    body{padding-top:46px;}
+  }
+  @media (min-width:761px){
+    body{padding-left:90px;}
+  }
+
+  section{
+    position:relative;
+    z-index:1;
+    max-width:760px;
+    margin:0 auto;
+    padding:64px 24px;
+    border-bottom:1px dashed var(--line);
+    scroll-margin-top:24px; /* স্মুথ স্ক্রলের সময় হেডারের নিচে যেন হেডিং হাইড না হয়ে যায় */
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:0.78rem;
+    letter-spacing:0.12em;
+    color:var(--clay);
+    text-transform:uppercase;
+    margin-bottom:10px;
+    display:block;
+  }
+  .entry-date{
+    font-family:var(--mono);
+    font-size:0.75rem;
+    color:var(--ink-soft);
+  }
+
+  /* ============================================================
+     হিরো — বই খোলার 3D অ্যানিমেশন (Hero: 3D book-opening)
+     ============================================================ */
+  .hero{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-bottom:none;
+    padding:24px;
+  }
+  .book-wrap{
+    perspective:2400px;
+    width:100%;
+    max-width:520px;
+  }
+  .book{
+    position:relative;
+    min-height:460px;
+    background:var(--paper);
+    border-radius:6px;
+    box-shadow:0 30px 60px rgba(34,40,31,0.25);
+    overflow:hidden;
+  }
+  .page-inside{
+    padding:48px 34px;
+    text-align:center;
+  }
+  .page-inside .kicker{
+    font-family:var(--mono);
+    font-size:0.75rem;
+    letter-spacing:0.15em;
+    color:var(--clay);
+    text-transform:uppercase;
+  }
+  .page-inside h1{
+    font-size:2.1rem;
+    margin:14px 0 6px;
+  }
+  .page-inside .role{
+    font-family:var(--mono);
+    color:var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .page-inside p.tagline{
+    margin-top:22px;
+    font-size:1rem;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+  .cover{
+    position:absolute;
+    inset:0;
+    transform-origin:left center;
+    transition:transform 1.4s cubic-bezier(.6,.05,.28,.98);
+    background:linear-gradient(135deg,var(--green-deep),var(--green));
+    color:var(--paper);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:20px;
+    backface-visibility:hidden;
+    z-index:2;
+    text-align:center;
+    padding:24px;
+  }
+  .cover.open{transform:rotateY(-165deg);}
+  .cover h1{
+    color:var(--paper);
+    font-size:1.9rem;
+    letter-spacing:0.02em;
+  }
+  .cover .stitch{
+    font-family:var(--mono);
+    font-size:0.7rem;
+    letter-spacing:0.2em;
+    opacity:0.75;
+    text-transform:uppercase;
+  }
+  .open-btn{
+    margin-top:10px;
+    background:var(--gold);
+    color:var(--ink);
+    border:none;
+    font-family:var(--mono);
+    font-size:0.85rem;
+    padding:12px 22px;
+    border-radius:30px;
+    cursor:pointer;
+    box-shadow:0 6px 14px rgba(0,0,0,0.25);
+  }
+  .hero-hint{
+    text-align:center;
+    margin-top:16px;
+    font-family:var(--mono);
+    font-size:0.75rem;
+    color:var(--ink-soft);
+  }
+
+  /* ============================================================
+     সাধারণ কম্পোনেন্ট (Shared components)
+     ============================================================ */
+  .card{
+    background:var(--paper-dark);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:24px;
+    margin-top:20px;
+  }
+  .photo-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+    gap:10px;
+    margin-top:16px;
+  }
+  .photo-slot{
+    aspect-ratio:4/3;
+    border:1px dashed var(--gold);
+    border-radius:6px;
+    overflow:hidden;
+    background:rgba(180,137,47,0.08);
+  }
+  .photo-slot img{width:100%;height:100%;object-fit:cover;}
+  .link-slot{
+    display:inline-block;
+    margin-top:14px;
+    font-family:var(--mono);
+    font-size:0.85rem;
+    color:var(--clay);
+    border-bottom:1px dashed var(--clay);
+  }
+  .theory-box{
+    margin-top:20px;
+    border:2px dashed var(--green);
+    border-radius:8px;
+    padding:40px 24px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-family:var(--mono);
+    font-size:0.85rem;
+    background:rgba(63,102,68,0.06);
+  }
+  /* এক্টিভিটি লিস্ট এখন কার্ড আকারে, প্রতিটার সাথে ৩টি ছবির স্লট */
+  /* এক্টিভিটি লিস্ট — আগের মতোই সাদামাটা লিস্ট, ভিতরে কোনো ছবি নেই */
+  ul.activity-list{list-style:none;padding:0;margin:20px 0 0;}
+  ul.activity-list li{
+    position:relative;
+    padding-left:22px;
+    margin-bottom:14px;
+  }
+  ul.activity-list li::before{
+    content:"—";
+    position:absolute;left:0;color:var(--clay);
+  }
+  /* লিস্ট শেষ হওয়ার পর একসাথে ৭টা স্কয়ার ছবির গ্যালারি */
+  .activity-gallery{
+    margin-top:28px;
+    padding-top:20px;
+    border-top:1px dashed var(--line);
+  }
+  .activity-gallery .gallery-label{
+    font-family:var(--mono);
+    font-size:0.78rem;
+    letter-spacing:0.1em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    margin-bottom:12px;
+    display:block;
+  }
+  .activity-gallery .photo-grid{
+    grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+  }
+  .activity-gallery .photo-slot{aspect-ratio:1/1;}
+  .skill-tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+  .skill-tags span{
+    font-family:var(--mono);
+    font-size:0.8rem;
+    background:var(--green);
+    color:var(--paper);
+    padding:7px 14px;
+    border-radius:20px;
+  }
+  footer{
+    text-align:center;
+    padding:40px 24px 80px;
+    font-family:var(--mono);
+    font-size:0.8rem;
+    color:var(--ink-soft);
+  }
+  @media (prefers-reduced-motion: reduce){
+    .cover{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="binding"></div>
+<!-- নেভিগেশন এখন <a href="#..."> এর বদলে <button data-target="..."> — JS দিয়ে স্মুথ স্ক্রল কন্ট্রোল করা হয়, তাই এটা কখনোই external link এর মতো আচরণ করবে না -->
+<nav class="tabs" id="tabs">
+  <button data-target="home">Home</button>
+  <button data-target="about">About</button>
+  <button data-target="education">Education</button>
+  <button data-target="philosophy">Philosophy</button>
+  <button data-target="projects">Projects</button>
+  <button data-target="activities">Activities</button>
+  <button data-target="skills">Skills</button>
+  <button data-target="contact">Contact</button>
+</nav>
+
+<!-- ============================================================
+     HERO — 3D বই খোলার অ্যানিমেশন
+     ============================================================ -->
+<section id="home" class="hero">
+  <div class="book-wrap">
+    <div class="book" id="book">
+      <div class="page-inside">
+        <span class="kicker">Field Notes / Software Developer</span>
+        <h1>Notes of<br>a Builder</h1>
+        <div class="role">A journal of what I've learned, thought about, and built.</div>
+        <p class="tagline">"AI is like a wave in the ocean — fight it and you'll drown, ride it and it will carry you far."</p>
+      </div>
+      <div class="cover" id="cover">
+        <div class="stitch">Personal Journal · Est. 2024</div>
+        <h1>Md. Mizanur Rahman</h1>
+        <div class="role" style="color:var(--paper);opacity:0.85;">Software Engineer &amp; Builder</div>
+        <button class="open-btn" id="openBtn">Open the Book</button>
+      </div>
+    </div>
+  </div>
+</section>
+<p class="hero-hint">↓ Scroll to keep reading the journal</p>
+
+<!-- ============================================================
+     ABOUT
+     ============================================================ -->
+<section id="about">
+  <span class="eyebrow">Entry 01 — About Me</span>
+  <h2>About Me</h2>
+  <p>
+    My name is Md. Mizanur Rahman. I'm an emerging, self-taught programmer. In this age of AI,
+    many people believe the window for becoming a software engineer is closing — that AI will
+    simply take the jobs. I believe the opposite: right now is one of the best times to become
+    a software engineer. Work that once needed a team of five or six people can now be done by
+    one person, and projects that once took months can now be built in a fraction of that time
+    with AI's help.
+  </p>
+  <p>
+    To me, AI is like a large wave in the ocean — swim against it and you'll be pulled under,
+    but ride with it and it will carry you much further than you could go alone. I believe AI
+    has closed much of the distance between an idea and its execution. To prove that to myself,
+    I've used my basic coding skills to find real problems around me and build working solutions
+    for them.
+  </p>
+  <p>
+    Going forward, I want to go deeper into Machine Learning and Computer Vision, and bring
+    along the people who are struggling to keep pace with technology.
+  </p>
+</section>
+
+<!-- ============================================================
+     EDUCATION
+     ============================================================ -->
+<section id="education">
+  <span class="eyebrow">Entry 02 — Education</span>
+  <h2>Education</h2>
+
+  <div class="card">
+    <div class="entry-date">PSC · 2017</div>
+    <!-- এখানে PSC সার্টিফিকেটের ১টা ছবির লিংক দিন -->
+    <div class="photo-grid">
+      <div class="photo-slot"><img src="https://i.ibb.co/wNVZGrRd/IMG-6057.avif" alt="PSC Certificate"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="entry-date">JSC · 2020</div>
+    <!-- এখানে JSC সার্টিফিকেটের ১টা ছবির লিংক দিন -->
+    <div class="photo-grid">
+      <div class="photo-slot"><img src="https://i.ibb.co/vxcQzH72/IMG-6058.avif" alt="JSC Certificate"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="entry-date">SSC · 2022–2023</div>
+    <!-- এখানে SSC-এর ২টা ছবির লিংক দিন: ১টা সার্টিফিকেট, ১টা মার্কশিট -->
+    <div class="photo-grid">
+      <div class="photo-slot"><img src="https://i.ibb.co/HpYrq4k5/IMG-6055.avif" alt="SSC Certificate"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/qYgPNgTH/IMG-6056.avif" alt="SSC Marksheet"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="entry-date">HSC · 2024–2025</div>
+    <!-- এখানে HSC-এর ২টা ছবির লিংক দিন: ১টা সার্টিফিকেট, ১টা মার্কশিট -->
+    <div class="photo-grid">
+      <div class="photo-slot"><img src="https://i.ibb.co/kVN2Vd8m/IMG-6053.avif" alt="HSC Certificate"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/wNf4q3r6/IMG-6054.avif" alt="HSC Marksheet"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PHILOSOPHY / THEORY — খালি রাখা হয়েছে, পরে লিখবেন
+     ============================================================ -->
+<section id="philosophy">
+  <span class="eyebrow">Entry 03 — My Philosophy</span>
+  <h2>My Theory &amp; My Apps</h2>
+  <p>This is where I'll write in detail about my own theory, and about the apps I've built.</p>
+  <!-- এই বক্সের ভিতরে পরে আপনার থিওরি ও অ্যাপ সম্পর্কিত বিস্তারিত লেখা বসাবেন (ইংরেজিতে লিখবেন) -->
+  <div class="theory-box">
+    This space is intentionally left blank — add your detailed write-up about your theory and apps here later.
+  </div>
+</section>
+
+<!-- ============================================================
+     PROJECTS
+     ============================================================ -->
+<section id="projects">
+  <span class="eyebrow">Entry 04 — Projects</span>
+  <h2>Apps I've Built</h2>
+
+  <div class="card">
+    <h3>Khamari-Bondu (Farmer's Friend)</h3>
+    <p>
+      A live livestock-tracking app that helps rural farmers work out a fair market price for
+      their animals, sends reminders for vaccinations and other essential care, and tracks an
+      animal's growth over time through photos.
+    </p>
+    <!-- এখানে লাইভ পেজের লিংক দিন (GitHub লিংক নয়, লাইভ লিংক দিতে বলেছেন) -->
+    <a class="link-slot" href="https://mizanurmm2004-hue.github.io/khamari-bondu/" target="_blank" rel="noopener">🔗 View live app</a>
+    <!-- এখানে ৬টা স্ক্রিনশট বসানো হয়েছে (আগে ৫টার জায়গা ছিল, ১টা বাড়ানো হয়েছে) -->
+    <div class="photo-grid">
+      <div class="photo-slot"><img src="https://i.ibb.co/4n15hXBr/Screenshot-20260709-000737.jpg" alt="Khamari-Bondu screenshot 1"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/j9y3msD9/Screenshot-20260709-003710.jpg" alt="Khamari-Bondu screenshot 2"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/Xrx7GSCB/Screenshot-20260709-003729.jpg" alt="Khamari-Bondu screenshot 3"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/k6vmsYdN/Screenshot-20260709-003828.jpg" alt="Khamari-Bondu screenshot 4"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/svRLxd1Y/Screenshot-20260709-003851.jpg" alt="Khamari-Bondu screenshot 5"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/fz5cV12W/Screenshot-20260709-003911.jpg" alt="Khamari-Bondu screenshot 6"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Essay Call App</h3>
+    <p>
+      An app built for elderly people with little or no formal education. Contacts are saved
+      using voice labels and photos instead of text, so it can be used without needing to read.
+      Family members can remotely save numbers to the elderly person's phone, and an emergency
+      button is included for urgent situations.
+    </p>
+    <!-- এখানে অ্যাপের লিংক দিন -->
+    <a class="link-slot" href="https://mizanurmm2004-hue.github.io/Esay-calling-app/" target="_blank" rel="noopener">🔗 View live app</a>
+    <!-- এখানে ৭টা স্ক্রিনশট বসানো হয়েছে (আগে ৫টার জায়গা ছিল, ২টা বাড়ানো হয়েছে) -->
+    <div class="photo-grid">
+      <div class="photo-slot"><img src="https://i.ibb.co/PGPCdhGj/Screenshot-20260709-005613.jpg" alt="Essay Call screenshot 1"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/1GbC9M5p/Screenshot-20260709-005619.jpg" alt="Essay Call screenshot 2"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/fzskDJHm/Screenshot-20260709-005631.jpg" alt="Essay Call screenshot 3"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/LzbH1NRz/Screenshot-20260709-005635.jpg" alt="Essay Call screenshot 4"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/1GbhBdZ0/Screenshot-20260709-005642.jpg" alt="Essay Call screenshot 5"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/0yZ8dd00/Screenshot-20260709-005655.jpg" alt="Essay Call screenshot 6"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/YB3f1bn3/Screenshot-20260709-005716.jpg" alt="Essay Call screenshot 7"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Salat Habit Making</h3>
+    <p>
+      An app designed to help build a consistent prayer habit and break free of phone addiction.
+      Starting 10–20 minutes before prayer time it shows hadiths about the importance of prayer,
+      auto-locks the phone at the set time, can request a photo as proof of prayer, and keeps
+      a running count of missed prayers.
+    </p>
+    <!-- এখানে অ্যাপের লিংক দিন -->
+    <a class="link-slot" href="https://mizanurmm2004-hue.github.io/Solat-tracker-/" target="_blank" rel="noopener">🔗 View live app</a>
+    <!-- এখানে ৬টা স্ক্রিনশট বসানো হয়েছে (আগে ৫টার জায়গা ছিল, ১টা বাড়ানো হয়েছে) -->
+    <div class="photo-grid">
+      <div class="photo-slot"><img src="https://i.ibb.co/8ymTfwt/Screenshot-20260709-004409.jpg" alt="Salat Habit screenshot 1"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/1GxLMkv3/Screenshot-20260709-004415.jpg" alt="Salat Habit screenshot 2"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/ZpRZVMHT/Screenshot-20260709-004421.jpg" alt="Salat Habit screenshot 3"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/DBvyLLY/Screenshot-20260709-004427.jpg" alt="Salat Habit screenshot 4"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/RTq5bZNY/Screenshot-20260709-004443.jpg" alt="Salat Habit screenshot 5"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/svd7mnPd/Screenshot-20260709-004450.jpg" alt="Salat Habit screenshot 6"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Retail Store Calculator</h3>
+    <p>
+      A simple bookkeeping app for small grocery shops that instantly calculates how many
+      kilograms or grams of a product a given amount of money can buy.
+    </p>
+    <!-- এখানে অ্যাপের লিংক দিন (এখনো দেওয়া হয়নি, পরে বসাবেন) -->
+    <a class="link-slot" href="#">🔗 Add app link here</a>
+    <!-- এখানে ৫টা স্ক্রিনশট বসানো হয়েছে -->
+    <div class="photo-grid">
+      <div class="photo-slot"><img src="https://i.ibb.co/XTFX4xv/Screenshot-20260709-005931.jpg" alt="Retail Store Calculator screenshot 1"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/j9Sf0DSy/Screenshot-20260709-005936.jpg" alt="Retail Store Calculator screenshot 2"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/bjRSVBGD/Screenshot-20260709-005940.jpg" alt="Retail Store Calculator screenshot 3"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/zWNZ3sRR/Screenshot-20260709-005948.jpg" alt="Retail Store Calculator screenshot 4"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/4RbSr4tW/Screenshot-20260709-005955.jpg" alt="Retail Store Calculator screenshot 5"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ACTIVITIES / VOLUNTEER
+     — প্রতিটা আইটেম এখন কার্ড, এবং প্রতি কার্ডে ৩টা করে ছবির স্লট আছে
+     ============================================================ -->
+<section id="activities">
+  <span class="eyebrow">Entry 05 — Extracurricular &amp; Volunteering</span>
+  <h2>Extracurricular &amp; Volunteer Work</h2>
+
+  <ul class="activity-list">
+    <li>Collected old clothes and money for flood victims while living in the college hostel in 2024, and helped distribute them to affected families.</li>
+    <li>Worked with "BD Clean" on environmental protection efforts.</li>
+    <li>Won an app-idea competition held by the Root &amp; Promaning Club at college in 2025. The idea: an AI bot that uses dopamine release to help people build new skills — it generates short videos to teach whatever the user wants to learn, and analyzes user behavior to suggest what to learn next.</li>
+    <li>Member of the village volleyball club, playing as libero.</li>
+    <li>Gave free English tuition to children in the village.</li>
+    <li>Led a project to build shelters for birds around the city.</li>
+    <li>Actively took part in the anti-drug movement, the student movement, and protests in solidarity with Palestine.</li>
+  </ul>
+
+  <!-- এখানে উপরের ৭টা কাজের জন্য মোট ৭টা ছবির লিংক দিন (একটা করে প্রতিটার জন্য), স্কয়ার (1:1) সাইজে ক্রপ করে দিলে সবচেয়ে ভালো দেখাবে -->
+  <div class="activity-gallery">
+    <span class="gallery-label">Photos from these activities</span>
+    <div class="photo-grid">
+      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+1" alt="Activity photo 1"></div>
+      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+2" alt="Activity photo 2"></div>
+      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+3" alt="Activity photo 3"></div>
+      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+4" alt="Activity photo 4"></div>
+      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+5" alt="Activity photo 5"></div>
+      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+6" alt="Activity photo 6"></div>
+      <div class="photo-slot"><img src="https://placehold.co/300x300?text=Photo+7" alt="Activity photo 7"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SKILLS
+     ============================================================ -->
+<section id="skills">
+  <span class="eyebrow">Entry 06 — Skills</span>
+  <h2>Skills</h2>
+  <div class="skill-tags">
+    <span>Leadership</span>
+    <span>Public Speaking</span>
+    <span>HTML</span>
+    <span>Basic Python</span>
+    <span>Prompt Engineering</span>
+    <span>Gemini</span>
+    <span>Claude</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     CONTACT
+     ============================================================ -->
+<section id="contact">
+  <span class="eyebrow">Entry 07 — Contact</span>
+  <h2>Contact</h2>
+  <p>Email: <a href="mailto:mizanurmm2004@gmail.com">mizanurmm2004@gmail.com</a></p>
+  <!-- এখানে আপনার GitHub প্রোফাইলের আসল লিংকটা href="#" এর জায়গায় বসান -->
+  <p>GitHub: <a class="link-slot" href="#">GitHub Profile</a></p>
+</section>
+
+<footer>
+  © Md. Mizanur Rahman — a journal website built from field notes
+</footer>
+
+<script>
+  // পেজ লোড হওয়ার কিছুক্ষণ পর বইটি নিজে থেকেই একটু খুলে যাবে (hint), ক্লিক করলে পুরোপুরি খুলবে
+  const cover = document.getElementById('cover');
+  const openBtn = document.getElementById('openBtn');
+
+  function openBook(){
+    cover.classList.add('open');
+  }
+
+  openBtn.addEventListener('click', openBook);
+
+  // মোবাইলে পুরো কভারে ট্যাপ করলেও যেন খোলে
+  cover.addEventListener('click', function(e){
+    if(e.target !== openBtn){ openBook(); }
+  });
+
+  // ============================================================
+  // নেভিগেশন — এখন <a href> নয়, <button data-target> ব্যবহার করা
+  // হয়েছে এবং JS দিয়ে scrollIntoView কল করা হয়, তাই ক্লিক করলে
+  // পেজের বাইরে কোথাও যাবে না, শুধু ঐ সেকশনে স্মুথলি স্ক্রল হবে।
+  // ============================================================
+  const tabButtons = Array.from(document.querySelectorAll('nav.tabs button'));
+  const sections = tabButtons
+    .map(btn => document.getElementById(btn.dataset.target))
+    .filter(Boolean);
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      if(target){
+        target.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+    });
+  });
+
+  // স্ক্রল করার সময় বর্তমানে কোন সেকশনে আছি সেটা বুঝে সেই ট্যাবটা হাইলাইট করা
+  const highlightActiveTab = () => {
+    let currentId = sections[0] ? sections[0].id : null;
+    const scrollPos = window.scrollY + window.innerHeight * 0.3;
+    sections.forEach(sec => {
+      if(sec.offsetTop <= scrollPos){
+        currentId = sec.id;
+      }
+    });
+    tabButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.target === currentId);
+    });
+  };
+
+  window.addEventListener('scroll', highlightActiveTab, {passive:true});
+  window.addEventListener('load', highlightActiveTab);
+</script>
+
+</body>
+</html>
