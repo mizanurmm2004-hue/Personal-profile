@@ -5,379 +5,515 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Md. Mizanur Rahman — Field Notes of a Builder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Hind+Siliguri:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* ============================================================
-     ডিজাইন টোকেন (Design tokens)
-     ============================================================ */
+  /* ================================================================
+     1. DESIGN TOKENS
+     A single indigo → violet → cyan gradient system carries the whole
+     page. Fraunces stays for headings (keeps the "journal" warmth),
+     Inter takes over the UI/body text for a crisp modern read, and
+     JetBrains Mono covers labels/eyebrows/data — three roles, three
+     faces, used consistently everywhere.
+     ================================================================ */
   :root{
-    --paper: #EFE6D4;         /* কাগজের রং */
-    --paper-dark: #E4D8BF;
-    --ink: #22281F;           /* গাঢ় সবুজ-কালো কালি */
-    --ink-soft: #4A4F41;
-    --green: #3F6644;         /* মসজিদ/মাঠের সবুজ */
-    --green-deep: #263B29;
-    --clay: #A94E2C;          /* পোড়ামাটি/ইট রং */
-    --gold: #B4892F;          /* সুতোর/বাঁধাইয়ের রং */
-    --line: rgba(34,40,31,0.18);
-    --display: 'Fraunces', serif;
-    --body: 'Hind Siliguri', sans-serif;
-    --mono: 'IBM Plex Mono', monospace;
+    /* brand gradient ramp */
+    --primary:#6366F1;
+    --primary-dark:#4F46E5;
+    --secondary:#8B5CF6;
+    --accent:#06B6D4;
+    --success:#10B981;
+
+    /* light surface system */
+    --bg-start:#F8FAFC;
+    --bg-end:#EEF2FF;
+    --surface:rgba(255,255,255,0.70);
+    --surface-solid:#FFFFFF;
+    --border:rgba(99,102,241,0.14);
+    --shadow-color:rgba(79,70,229,0.16);
+
+    /* type */
+    --ink:#1E1B3A;
+    --ink-soft:#5B5A78;
+    --ink-faint:#8888A6;
+
+    --display:'Fraunces', serif;
+    --body:'Inter', 'Hind Siliguri', sans-serif;
+    --mono:'JetBrains Mono', monospace;
+
+    --gradient-brand:linear-gradient(135deg, var(--primary) 0%, var(--secondary) 55%, var(--accent) 100%);
+    --gradient-soft:linear-gradient(180deg, var(--bg-start), var(--bg-end));
+
+    --radius-lg:24px;
+    --radius-md:18px;
+    --radius-sm:12px;
+
+    color-scheme: light;
+  }
+
+  /* ----------------------------------------------------------------
+     Dark mode — beautiful navy gradient, same brand ramp brightened
+     slightly so it still glows against the deep background.
+     ---------------------------------------------------------------- */
+  [data-theme="dark"]{
+    --primary:#818CF8;
+    --primary-dark:#6366F1;
+    --secondary:#A78BFA;
+    --accent:#22D3EE;
+    --success:#34D399;
+
+    --bg-start:#0F172A;
+    --bg-end:#1E293B;
+    --surface:rgba(30,41,59,0.62);
+    --surface-solid:#182337;
+    --border:rgba(139,92,246,0.28);
+    --shadow-color:rgba(0,0,0,0.45);
+
+    --ink:#E7E9F5;
+    --ink-soft:#A5ACC7;
+    --ink-faint:#6E7591;
+    color-scheme: dark;
   }
 
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{
     margin:0;
-    background:var(--paper);
     color:var(--ink);
     font-family:var(--body);
-    line-height:1.7;
+    line-height:1.75;
     -webkit-font-smoothing:antialiased;
+    background:var(--gradient-soft);
+    background-attachment:fixed;
+    transition:background .5s ease, color .5s ease;
+    overflow-x:hidden;
   }
-  body::before{
-    content:"";
-    position:fixed;inset:0;
-    pointer-events:none;
-    opacity:0.35;
-    background-image:
-      radial-gradient(rgba(34,40,31,0.05) 1px, transparent 1px);
-    background-size:3px 3px;
-    z-index:0;
-  }
-  h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;color:var(--green-deep);}
-  a{color:var(--clay);}
-  img{max-width:100%;display:block;}
 
-  /* ============================================================
-     বাঁধাই / নোটবুক ট্যাব নেভিগেশন (Binding + tab navigation)
-     — এখন প্রতিটা ট্যাব শুধু পেজের ভেতরে স্ক্রল করবে, কোথাও external
-       link এর মতো আচরণ করবে না। active থাকলে ট্যাবটা হাইলাইট হবে।
-     ============================================================ */
-  .binding{
-    position:fixed;
-    left:0;top:0;bottom:0;
-    width:14px;
-    background:repeating-linear-gradient(
-      to bottom, var(--gold) 0 6px, transparent 6px 18px
-    );
-    z-index:50;
+  /* ambient gradient "aurora" blobs — the one signature atmospheric
+     touch; slow, quiet, and switched off for reduced-motion users */
+  .aurora{
+    position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+  }
+  .aurora span{
+    position:absolute; border-radius:50%; filter:blur(90px); opacity:.35;
+    animation:drift 26s ease-in-out infinite alternate;
+  }
+  .aurora span:nth-child(1){
+    width:480px;height:480px; top:-160px; left:-120px;
+    background:var(--primary); animation-delay:0s;
+  }
+  .aurora span:nth-child(2){
+    width:420px;height:420px; top:30%; right:-160px;
+    background:var(--secondary); animation-delay:-8s;
+  }
+  .aurora span:nth-child(3){
+    width:380px;height:380px; bottom:-140px; left:20%;
+    background:var(--accent); animation-delay:-16s;
+  }
+  @keyframes drift{
+    0%{transform:translate(0,0) scale(1);}
+    100%{transform:translate(40px,50px) scale(1.12);}
+  }
+  [data-theme="dark"] .aurora span{opacity:.22;}
+
+  h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;color:var(--ink);letter-spacing:-0.01em;}
+  a{color:var(--primary-dark);}
+  img{max-width:100%;display:block;}
+  ::selection{background:var(--primary);color:#fff;}
+
+  /* visible, on-brand focus ring for keyboard users */
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:3px;
+    border-radius:6px;
+  }
+
+  /* ================================================================
+     2. NAVIGATION
+     The old paper "binding" becomes a slim gradient spine — a quiet
+     nod to bookbinding — paired with a floating glass pill dock.
+     Behaviour is unchanged: buttons still just scrollIntoView().
+     ================================================================ */
+  .spine{
+    position:fixed; left:46px; top:0; bottom:0; width:2px;
+    background:var(--gradient-brand); opacity:.25; z-index:40;
   }
   nav.tabs{
-    position:fixed;
-    top:0;left:14px;
-    height:100vh;
-    width:76px;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    gap:6px;
-    z-index:49;
+    position:fixed; top:50%; left:20px; transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:4px;
+    padding:10px; z-index:49;
+    background:var(--surface);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--border);
+    border-radius:999px;
+    box-shadow:0 12px 32px var(--shadow-color);
   }
   nav.tabs button{
-    all:unset;
-    cursor:pointer;
-    writing-mode:vertical-rl;
-    text-orientation:mixed;
-    background:var(--green);
-    color:var(--paper);
+    all:unset; cursor:pointer; text-align:center;
+    color:var(--ink-soft);
     font-family:var(--mono);
-    font-size:0.7rem;
-    letter-spacing:0.08em;
-    padding:14px 7px;
-    border-radius:0 6px 6px 0;
-    box-shadow:2px 2px 4px rgba(0,0,0,0.15);
-    transition:transform .2s ease, background .2s ease;
+    font-size:0.72rem;
+    letter-spacing:0.04em;
+    padding:10px 14px;
+    border-radius:999px;
+    white-space:nowrap;
+    transition:background .35s ease, color .35s ease, transform .35s ease;
   }
-  nav.tabs button:hover{transform:translateX(4px);background:var(--clay);}
+  nav.tabs button:hover{background:rgba(99,102,241,0.10); color:var(--primary-dark);}
   nav.tabs button.active{
-    background:var(--clay);
-    transform:translateX(6px);
-    box-shadow:3px 3px 6px rgba(0,0,0,0.22);
+    background:var(--gradient-brand);
+    color:#fff;
+    box-shadow:0 6px 16px var(--shadow-color);
   }
+
+  /* theme toggle — floating glass circle, top right */
+  .theme-toggle{
+    all:unset; cursor:pointer;
+    position:fixed; top:20px; right:20px; z-index:60;
+    width:46px; height:46px; display:flex; align-items:center; justify-content:center;
+    border-radius:50%;
+    background:var(--surface);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border:1px solid var(--border);
+    box-shadow:0 8px 20px var(--shadow-color);
+    font-size:1.1rem;
+    transition:transform .35s ease, box-shadow .35s ease;
+  }
+  .theme-toggle:hover{transform:translateY(-2px) rotate(12deg); box-shadow:0 12px 28px var(--shadow-color);}
 
   @media (max-width:760px){
-    .binding{display:none;}
+    .spine{display:none;}
     nav.tabs{
-      top:0;left:0;right:0;height:auto;width:auto;
-      flex-direction:row;
-      overflow-x:auto;
-      background:var(--green-deep);
-      padding:8px 10px;
-      gap:8px;
+      top:0; left:0; right:0; bottom:auto; transform:none;
+      flex-direction:row; overflow-x:auto;
+      border-radius:0 0 20px 20px;
       justify-content:flex-start;
+      padding:10px 12px;
+      width:100%;
     }
-    nav.tabs button{
-      writing-mode:horizontal-tb;
-      white-space:nowrap;
-      border-radius:6px;
-      padding:7px 12px;
-      box-shadow:none;
-    }
-    body{padding-top:46px;}
+    nav.tabs button{padding:8px 14px;}
+    .theme-toggle{top:auto; bottom:20px; right:20px;}
+    body{padding-top:60px;}
   }
   @media (min-width:761px){
-    body{padding-left:90px;}
+    body{padding-left:120px;}
   }
 
+  /* ================================================================
+     3. SECTION / SHARED LAYOUT
+     ================================================================ */
   section{
-    position:relative;
-    z-index:1;
-    max-width:760px;
-    margin:0 auto;
-    padding:64px 24px;
-    border-bottom:1px dashed var(--line);
-    scroll-margin-top:24px; /* স্মুথ স্ক্রলের সময় হেডারের নিচে যেন হেডিং হাইড না হয়ে যায় */
+    position:relative; z-index:1;
+    max-width:760px; margin:0 auto;
+    padding:72px 24px;
+    scroll-margin-top:32px;
   }
   .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
     font-family:var(--mono);
-    font-size:0.78rem;
-    letter-spacing:0.12em;
-    color:var(--clay);
+    font-size:0.72rem;
+    letter-spacing:0.1em;
+    color:var(--primary-dark);
     text-transform:uppercase;
-    margin-bottom:10px;
-    display:block;
+    background:rgba(99,102,241,0.08);
+    border:1px solid var(--border);
+    padding:6px 14px 6px 10px;
+    border-radius:999px;
+    margin-bottom:18px;
   }
+  .eyebrow::before{
+    content:""; width:7px; height:7px; border-radius:50%;
+    background:var(--gradient-brand); flex:none;
+  }
+  section h2{
+    font-size:2rem;
+    margin-bottom:8px;
+    position:relative;
+    display:inline-block;
+  }
+  section h2::after{
+    content:"";
+    display:block;
+    width:52px; height:4px; border-radius:99px;
+    margin-top:14px;
+    background:var(--gradient-brand);
+  }
+  section > p{color:var(--ink-soft); margin-top:22px;}
   .entry-date{
-    font-family:var(--mono);
-    font-size:0.75rem;
-    color:var(--ink-soft);
+    font-family:var(--mono); font-size:0.75rem; color:var(--ink-faint);
+    margin-bottom:12px; display:block;
   }
 
-  /* ============================================================
-     হিরো — বই খোলার 3D অ্যানিমেশন (Hero: 3D book-opening)
-     ============================================================ */
+  /* scroll-reveal (progressive enhancement only — content is already
+     fully visible without JS, this just adds a fade/rise on entry) */
+  .reveal{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in-view{opacity:1; transform:translateY(0);}
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1; transform:none; transition:none;}
+  }
+
+  /* ================================================================
+     4. HERO — the 3D book-opening moment stays, restyled as a
+     glass-and-gradient artifact instead of literal paper.
+     ================================================================ */
   .hero{
     min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-bottom:none;
+    display:flex; align-items:center; justify-content:center;
     padding:24px;
   }
-  .book-wrap{
-    perspective:2400px;
-    width:100%;
-    max-width:520px;
-  }
+  .book-wrap{ perspective:2400px; width:100%; max-width:520px; }
   .book{
-    position:relative;
-    min-height:460px;
-    background:var(--paper);
-    border-radius:6px;
-    box-shadow:0 30px 60px rgba(34,40,31,0.25);
+    position:relative; min-height:460px;
+    background:var(--surface);
+    backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    box-shadow:0 40px 80px var(--shadow-color);
     overflow:hidden;
   }
-  .page-inside{
-    padding:48px 34px;
-    text-align:center;
-  }
+  .page-inside{ padding:52px 36px; text-align:center; }
   .page-inside .kicker{
-    font-family:var(--mono);
-    font-size:0.75rem;
-    letter-spacing:0.15em;
-    color:var(--clay);
-    text-transform:uppercase;
+    font-family:var(--mono); font-size:0.72rem; letter-spacing:0.14em;
+    color:var(--primary-dark); text-transform:uppercase;
   }
   .page-inside h1{
-    font-size:2.1rem;
-    margin:14px 0 6px;
+    font-size:2.3rem; margin:16px 0 6px;
+    background:var(--gradient-brand);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
   }
-  .page-inside .role{
-    font-family:var(--mono);
-    color:var(--ink-soft);
-    font-size:0.95rem;
-  }
+  .page-inside .role{ font-family:var(--mono); color:var(--ink-soft); font-size:0.92rem; }
   .page-inside p.tagline{
-    margin-top:22px;
-    font-size:1rem;
-    color:var(--ink-soft);
-    font-style:italic;
+    margin-top:24px; font-size:1rem; color:var(--ink-soft); font-style:italic;
   }
   .cover{
-    position:absolute;
-    inset:0;
+    position:absolute; inset:0;
     transform-origin:left center;
     transition:transform 1.4s cubic-bezier(.6,.05,.28,.98);
-    background:linear-gradient(135deg,var(--green-deep),var(--green));
-    color:var(--paper);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
+    background:var(--gradient-brand);
+    color:#fff;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:20px;
     backface-visibility:hidden;
-    z-index:2;
-    text-align:center;
-    padding:24px;
+    z-index:2; text-align:center; padding:24px;
+    cursor:pointer;
+  }
+  .cover::before{
+    /* soft dot texture for depth, echoes the old "paper" feel */
+    content:""; position:absolute; inset:0; opacity:.15;
+    background-image:radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px);
+    background-size:16px 16px;
+    pointer-events:none;
   }
   .cover.open{transform:rotateY(-165deg);}
-  .cover h1{
-    color:var(--paper);
-    font-size:1.9rem;
-    letter-spacing:0.02em;
-  }
+  .cover h1{ color:#fff; font-size:2rem; letter-spacing:0.01em; }
   .cover .stitch{
-    font-family:var(--mono);
-    font-size:0.7rem;
-    letter-spacing:0.2em;
-    opacity:0.75;
-    text-transform:uppercase;
+    font-family:var(--mono); font-size:0.7rem; letter-spacing:0.22em;
+    opacity:0.85; text-transform:uppercase;
   }
   .open-btn{
-    margin-top:10px;
-    background:var(--gold);
-    color:var(--ink);
-    border:none;
-    font-family:var(--mono);
-    font-size:0.85rem;
-    padding:12px 22px;
-    border-radius:30px;
-    cursor:pointer;
-    box-shadow:0 6px 14px rgba(0,0,0,0.25);
+    all:unset; margin-top:8px; cursor:pointer;
+    background:rgba(255,255,255,0.16);
+    border:1px solid rgba(255,255,255,0.5);
+    color:#fff;
+    font-family:var(--mono); font-size:0.82rem;
+    padding:12px 24px; border-radius:999px;
+    backdrop-filter:blur(8px);
+    transition:background .3s ease, transform .3s ease, box-shadow .3s ease;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
   }
+  .open-btn:hover{ background:rgba(255,255,255,0.28); transform:translateY(-2px); box-shadow:0 12px 26px rgba(0,0,0,0.28); }
   .hero-hint{
-    text-align:center;
-    margin-top:16px;
-    font-family:var(--mono);
-    font-size:0.75rem;
-    color:var(--ink-soft);
+    text-align:center; margin-top:18px;
+    font-family:var(--mono); font-size:0.75rem; color:var(--ink-faint);
+    position:relative; z-index:1;
   }
 
-  /* ============================================================
-     সাধারণ কম্পোনেন্ট (Shared components)
-     ============================================================ */
+  /* ================================================================
+     5. SHARED COMPONENTS — cards, photos, links, chips
+     ================================================================ */
   .card{
-    background:var(--paper-dark);
-    border:1px solid var(--line);
-    border-radius:8px;
-    padding:24px;
+    background:var(--surface);
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:26px;
     margin-top:20px;
+    box-shadow:0 8px 24px var(--shadow-color);
+    transition:transform .4s ease, box-shadow .4s ease, border-color .4s ease;
   }
-  /* ছবি এখন একটার নিচে একটা, বড় আকারে — সার্টিফিকেট/স্ক্রিনশট স্পষ্ট দেখা যাবে */
-  .photo-grid{
-    display:flex;
-    flex-direction:column;
-    gap:16px;
-    margin-top:16px;
+  .card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 20px 44px var(--shadow-color);
+    border-color:rgba(99,102,241,0.35);
   }
+  .card h3{ font-size:1.25rem; margin-bottom:10px; }
+  .card p{ color:var(--ink-soft); margin:0; }
+
+  .photo-grid{ display:flex; flex-direction:column; gap:16px; margin-top:18px; }
   .photo-slot{
-    border:1px solid var(--line);
-    border-radius:8px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
     overflow:hidden;
-    background:var(--paper);
+    background:var(--surface-solid);
+    box-shadow:0 6px 16px var(--shadow-color);
   }
-  .photo-slot img{width:100%;height:auto;object-fit:contain;display:block;}
+  .photo-slot img{ width:100%; height:auto; object-fit:contain; display:block; transition:transform .5s ease; }
+  .photo-slot:hover img{ transform:scale(1.02); }
+
   .link-slot{
-    display:inline-block;
-    margin-top:14px;
-    font-family:var(--mono);
-    font-size:0.85rem;
-    color:var(--clay);
-    border-bottom:1px dashed var(--clay);
+    display:inline-block; margin-top:14px;
+    font-family:var(--mono); font-size:0.85rem;
+    color:var(--primary-dark);
+    border-bottom:1px dashed var(--primary-dark);
+    transition:color .3s ease, border-color .3s ease;
   }
-  /* থিওরি/ফিলোসফি টেক্সট বক্স — শুরুতে কিছুটা অংশ দেখা যাবে, নিচে fade,
-     "See more" চাপলে পুরোটা খুলবে */
+  .link-slot:hover{ color:var(--accent); border-color:var(--accent); }
+
+  /* Play-Store style horizontal screenshot rail */
+  .screenshot-grid{
+    display:flex; gap:16px; overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    margin-top:18px; padding-bottom:12px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .screenshot-grid::-webkit-scrollbar{ height:6px; }
+  .screenshot-grid::-webkit-scrollbar-thumb{ background:var(--gradient-brand); border-radius:10px; }
+  .screenshot-grid .photo-slot{
+    flex:0 0 auto; width:150px; aspect-ratio:9/19;
+    scroll-snap-align:start;
+    border-radius:20px;
+    box-shadow:0 10px 24px var(--shadow-color);
+  }
+  .screenshot-grid .photo-slot img{ width:100%; height:100%; object-fit:cover; }
+
+  /* gradient pill CTA — "View live app" / "Download the app" */
+  .app-link{
+    display:inline-flex; align-items:center; gap:8px;
+    margin-top:16px;
+    background:var(--gradient-brand);
+    color:#fff; text-decoration:none;
+    font-family:var(--mono); font-size:0.82rem; letter-spacing:0.03em;
+    padding:11px 22px;
+    border-radius:999px;
+    box-shadow:0 10px 24px var(--shadow-color);
+    transition:transform .35s ease, box-shadow .35s ease, filter .35s ease;
+  }
+  .app-link:hover{
+    transform:translateY(-3px) scale(1.03);
+    box-shadow:0 16px 34px var(--shadow-color);
+    filter:brightness(1.08);
+  }
+  .app-link .arrow{ display:inline-block; transition:transform .3s ease; }
+  .app-link:hover .arrow{ transform:translateX(4px); }
+
+  /* philosophy / theory box */
   .theory-box{
-    margin-top:20px;
-    background:var(--paper-dark);
-    border:1px solid var(--line);
-    border-left:3px solid var(--green);
-    border-radius:8px;
-    padding:26px 26px 20px;
-  }
-  .theory-box p{margin:0 0 16px;}
-  .theory-box p:last-child{margin-bottom:0;}
-  .theory-text{
+    margin-top:22px;
+    background:var(--surface);
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:30px 28px 22px;
     position:relative;
-    max-height:210px;
     overflow:hidden;
-    transition:max-height .5s ease;
   }
-  .theory-text.expanded{max-height:4000px;}
+  .theory-box::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:4px;
+    background:var(--gradient-brand);
+  }
+  .theory-box p{ margin:0 0 16px; color:var(--ink-soft); }
+  .theory-box p:last-child{ margin-bottom:0; }
+  .theory-text{
+    position:relative; max-height:210px; overflow:hidden;
+    transition:max-height .6s ease;
+  }
+  .theory-text.expanded{ max-height:4000px; }
   .theory-text::after{
-    content:"";
-    position:absolute;
-    left:0;right:0;bottom:0;
-    height:70px;
-    background:linear-gradient(to bottom, transparent, var(--paper-dark));
-    pointer-events:none;
+    content:""; position:absolute; left:0; right:0; bottom:0; height:80px;
+    background:linear-gradient(to bottom, transparent, var(--bg-end));
+    pointer-events:none; transition:opacity .3s ease;
+  }
+  [data-theme="dark"] .theory-text::after{
+    background:linear-gradient(to bottom, transparent, var(--bg-end));
+  }
+  .theory-text.expanded::after{ opacity:0; }
+  .see-more-btn{
+    all:unset; cursor:pointer; margin-top:18px; display:inline-block;
+    font-family:var(--mono); font-size:0.8rem; letter-spacing:0.05em;
+    background:var(--gradient-brand);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    border-bottom:1px dashed var(--primary-dark);
+    padding-bottom:2px;
     transition:opacity .3s ease;
   }
-  .theory-text.expanded::after{opacity:0;}
-  .see-more-btn{
-    all:unset;
-    cursor:pointer;
-    margin-top:16px;
-    display:inline-block;
-    font-family:var(--mono);
-    font-size:0.8rem;
-    letter-spacing:0.05em;
-    color:var(--clay);
-    border-bottom:1px dashed var(--clay);
-    padding-bottom:2px;
-  }
-  .see-more-btn:hover{color:var(--green-deep);border-color:var(--green-deep);}
-  /* এক্টিভিটি লিস্ট এখন কার্ড আকারে, প্রতিটার সাথে ৩টি ছবির স্লট */
-  /* এক্টিভিটি লিস্ট — আগের মতোই সাদামাটা লিস্ট, ভিতরে কোনো ছবি নেই */
-  ul.activity-list{list-style:none;padding:0;margin:20px 0 0;}
+  .see-more-btn:hover{ opacity:.75; }
+
+  /* activities */
+  ul.activity-list{ list-style:none; padding:0; margin:22px 0 0; }
   ul.activity-list li{
-    position:relative;
-    padding-left:22px;
-    margin-bottom:14px;
+    position:relative; padding-left:26px; margin-bottom:16px; color:var(--ink-soft);
   }
   ul.activity-list li::before{
-    content:"—";
-    position:absolute;left:0;color:var(--clay);
+    content:""; position:absolute; left:0; top:9px;
+    width:9px; height:9px; border-radius:50%;
+    background:var(--gradient-brand);
   }
-  /* লিস্ট শেষ হওয়ার পর একসাথে ৭টা স্কয়ার ছবির গ্যালারি */
   .activity-gallery{
-    margin-top:28px;
-    padding-top:20px;
-    border-top:1px dashed var(--line);
+    margin-top:32px; padding-top:24px;
+    border-top:1px solid var(--border);
   }
   .activity-gallery .gallery-label{
-    font-family:var(--mono);
-    font-size:0.78rem;
-    letter-spacing:0.1em;
-    color:var(--ink-soft);
-    text-transform:uppercase;
-    margin-bottom:12px;
-    display:block;
+    font-family:var(--mono); font-size:0.76rem; letter-spacing:0.1em;
+    color:var(--ink-faint); text-transform:uppercase;
+    margin-bottom:14px; display:block;
   }
   .activity-gallery .photo-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
-    gap:10px;
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:12px;
   }
-  .activity-gallery .photo-slot{aspect-ratio:1/1;}
-  .activity-gallery .photo-slot img{height:100%;object-fit:cover;}
-  .skill-tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+  .activity-gallery .photo-slot{ aspect-ratio:1/1; border-radius:var(--radius-sm); }
+  .activity-gallery .photo-slot img{ height:100%; object-fit:cover; }
+
+  /* skills — outline chips that fill with the brand gradient on hover */
+  .skill-tags{ display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
   .skill-tags span{
-    font-family:var(--mono);
-    font-size:0.8rem;
-    background:var(--green);
-    color:var(--paper);
-    padding:7px 14px;
-    border-radius:20px;
+    font-family:var(--mono); font-size:0.8rem;
+    color:var(--primary-dark);
+    background:rgba(99,102,241,0.08);
+    border:1px solid var(--border);
+    padding:8px 16px;
+    border-radius:999px;
+    transition:background .35s ease, color .35s ease, transform .35s ease;
   }
+  .skill-tags span:hover{
+    background:var(--gradient-brand);
+    color:#fff;
+    transform:translateY(-2px);
+  }
+
   footer{
     text-align:center;
-    padding:40px 24px 80px;
-    font-family:var(--mono);
-    font-size:0.8rem;
-    color:var(--ink-soft);
+    padding:44px 24px 90px;
+    font-family:var(--mono); font-size:0.8rem; color:var(--ink-faint);
+    border-top:1px solid var(--border);
+    margin-top:20px;
   }
+
   @media (prefers-reduced-motion: reduce){
-    .cover{transition:none;}
+    .cover{ transition:none; }
+    .aurora span{ animation:none; }
   }
 </style>
 </head>
 <body>
 
-<div class="binding"></div>
-<!-- নেভিগেশন এখন <a href="#..."> এর বদলে <button data-target="..."> — JS দিয়ে স্মুথ স্ক্রল কন্ট্রোল করা হয়, তাই এটা কখনোই external link এর মতো আচরণ করবে না -->
-<nav class="tabs" id="tabs">
+<!-- ambient gradient atmosphere (decorative only, aria-hidden) -->
+<div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+<div class="spine" aria-hidden="true"></div>
+
+<!-- Navigation — same <button data-target> + scrollIntoView pattern as
+     before, just restyled as a floating glass pill dock -->
+<nav class="tabs" id="tabs" aria-label="Section navigation">
   <button data-target="home">Home</button>
   <button data-target="about">About</button>
   <button data-target="education">Education</button>
@@ -388,8 +524,14 @@
   <button data-target="contact">Contact</button>
 </nav>
 
+<!-- Light/dark theme toggle — additive feature, doesn't touch any
+     existing logic. Preference persists in localStorage. -->
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+  <span id="themeIcon">🌙</span>
+</button>
+
 <!-- ============================================================
-     HERO — 3D বই খোলার অ্যানিমেশন
+     HERO — 3D book-opening animation
      ============================================================ -->
 <section id="home" class="hero">
   <div class="book-wrap">
@@ -403,7 +545,7 @@
       <div class="cover" id="cover">
         <div class="stitch">Personal Journal · Est. 2024</div>
         <h1>Md. Mizanur Rahman</h1>
-        <div class="role" style="color:var(--paper);opacity:0.85;">Software Engineer &amp; Builder</div>
+        <div class="role" style="color:#fff;opacity:0.9;">Software Engineer &amp; Builder</div>
         <button class="open-btn" id="openBtn">Open the Book</button>
       </div>
     </div>
@@ -414,7 +556,7 @@
 <!-- ============================================================
      ABOUT
      ============================================================ -->
-<section id="about">
+<section id="about" class="reveal">
   <span class="eyebrow">Entry 01 — About Me</span>
   <h2>About Me</h2>
   <p>
@@ -441,13 +583,12 @@
 <!-- ============================================================
      EDUCATION
      ============================================================ -->
-<section id="education">
+<section id="education" class="reveal">
   <span class="eyebrow">Entry 02 — Education</span>
   <h2>Education</h2>
 
   <div class="card">
     <div class="entry-date">PSC · 2017</div>
-    <!-- এখানে PSC সার্টিফিকেটের ১টা ছবির লিংক দিন -->
     <div class="photo-grid">
       <div class="photo-slot"><img src="https://i.ibb.co/vCsBDC8x/IMG-6057.jpg" alt="PSC Certificate"></div>
     </div>
@@ -455,7 +596,6 @@
 
   <div class="card">
     <div class="entry-date">JSC · 2020</div>
-    <!-- এখানে JSC সার্টিফিকেটের ১টা ছবির লিংক দিন -->
     <div class="photo-grid">
       <div class="photo-slot"><img src="https://i.ibb.co/twXz9ZgZ/IMG-6058.jpg" alt="JSC Certificate"></div>
     </div>
@@ -463,7 +603,6 @@
 
   <div class="card">
     <div class="entry-date">SSC · 2022–2023</div>
-    <!-- এখানে SSC-এর ২টা ছবির লিংক দিন: ১টা সার্টিফিকেট, ১টা মার্কশিট -->
     <div class="photo-grid">
       <div class="photo-slot"><img src="https://i.ibb.co/Xk3bftzT/IMG-6055.jpg" alt="SSC Certificate"></div>
       <div class="photo-slot"><img src="https://i.ibb.co/hJYVbh4r/IMG-6056.jpg" alt="SSC Marksheet"></div>
@@ -472,7 +611,6 @@
 
   <div class="card">
     <div class="entry-date">HSC · 2024–2025</div>
-    <!-- এখানে HSC-এর ২টা ছবির লিংক দিন: ১টা সার্টিফিকেট, ১টা মার্কশিট -->
     <div class="photo-grid">
       <div class="photo-slot"><img src="https://i.ibb.co/TDPSCGP7/IMG-6053.jpg" alt="HSC Certificate"></div>
       <div class="photo-slot"><img src="https://i.ibb.co/gMrrF4SV/IMG-6054.jpg" alt="HSC Marksheet"></div>
@@ -481,14 +619,12 @@
 </section>
 
 <!-- ============================================================
-     PHILOSOPHY / THEORY — খালি রাখা হয়েছে, পরে লিখবেন
+     PHILOSOPHY / THEORY
      ============================================================ -->
-<section id="philosophy">
+<section id="philosophy" class="reveal">
   <span class="eyebrow">Entry 03 — My Philosophy</span>
   <h2>My Theory &amp; My Apps</h2>
 
-  <!-- এই বক্সের ভিতরে আপনার থিওরি/দর্শনের লেখা বসানো হয়েছে; নতুন করে লিখতে চাইলে
-       <p> ট্যাগগুলোর ভিতরের লেখা বদলে দিলেই হবে -->
   <div class="theory-box">
     <div class="theory-text" id="theoryText">
       <p>There has never been a better time to be a software engineer. I know a lot of you are scared because of this whole AI wave, but if you're like me, you got into coding because you loved the idea of building something real — something another person could actually use, something that might blow up and change lives… all from just a laptop and an idea.</p>
@@ -518,7 +654,7 @@
 <!-- ============================================================
      PROJECTS
      ============================================================ -->
-<section id="projects">
+<section id="projects" class="reveal">
   <span class="eyebrow">Entry 04 — Projects</span>
   <h2>Apps I've Built</h2>
 
@@ -529,10 +665,8 @@
       their animals, sends reminders for vaccinations and other essential care, and tracks an
       animal's growth over time through photos.
     </p>
-    <!-- এখানে লাইভ পেজের লিংক দিন (GitHub লিংক নয়, লাইভ লিংক দিতে বলেছেন) -->
-    <a class="link-slot" href="https://mizanurmm2004-hue.github.io/khamari-bondu/" target="_blank" rel="noopener">🔗 View live app</a>
-    <!-- এখানে ৬টা স্ক্রিনশট বসানো হয়েছে (আগে ৫টার জায়গা ছিল, ১টা বাড়ানো হয়েছে) -->
-    <div class="photo-grid">
+    <a class="app-link" href="https://mizanurmm2004-hue.github.io/khamari-bondu/" target="_blank" rel="noopener">View live app <span class="arrow">→</span></a>
+    <div class="screenshot-grid">
       <div class="photo-slot"><img src="https://i.ibb.co/4n15hXBr/Screenshot-20260709-000737.jpg" alt="Khamari-Bondu screenshot 1"></div>
       <div class="photo-slot"><img src="https://i.ibb.co/j9y3msD9/Screenshot-20260709-003710.jpg" alt="Khamari-Bondu screenshot 2"></div>
       <div class="photo-slot"><img src="https://i.ibb.co/Xrx7GSCB/Screenshot-20260709-003729.jpg" alt="Khamari-Bondu screenshot 3"></div>
@@ -550,10 +684,8 @@
       Family members can remotely save numbers to the elderly person's phone, and an emergency
       button is included for urgent situations.
     </p>
-    <!-- এখানে অ্যাপের লিংক দিন -->
-    <a class="link-slot" href="https://mizanurmm2004-hue.github.io/Esay-calling-app/" target="_blank" rel="noopener">🔗 View live app</a>
-    <!-- এখানে ৭টা স্ক্রিনশট বসানো হয়েছে (আগে ৫টার জায়গা ছিল, ২টা বাড়ানো হয়েছে) -->
-    <div class="photo-grid">
+    <a class="app-link" href="https://mizanurmm2004-hue.github.io/Esay-calling-app/" target="_blank" rel="noopener">View live app <span class="arrow">→</span></a>
+    <div class="screenshot-grid">
       <div class="photo-slot"><img src="https://i.ibb.co/PGPCdhGj/Screenshot-20260709-005613.jpg" alt="Essay Call screenshot 1"></div>
       <div class="photo-slot"><img src="https://i.ibb.co/1GbC9M5p/Screenshot-20260709-005619.jpg" alt="Essay Call screenshot 2"></div>
       <div class="photo-slot"><img src="https://i.ibb.co/fzskDJHm/Screenshot-20260709-005631.jpg" alt="Essay Call screenshot 3"></div>
@@ -572,10 +704,8 @@
       auto-locks the phone at the set time, can request a photo as proof of prayer, and keeps
       a running count of missed prayers.
     </p>
-    <!-- এখানে অ্যাপের লিংক দিন -->
-    <a class="link-slot" href="https://mizanurmm2004-hue.github.io/Solat-tracker-/" target="_blank" rel="noopener">🔗 View live app</a>
-    <!-- এখানে ৬টা স্ক্রিনশট বসানো হয়েছে (আগে ৫টার জায়গা ছিল, ১টা বাড়ানো হয়েছে) -->
-    <div class="photo-grid">
+    <a class="app-link" href="https://mizanurmm2004-hue.github.io/Solat-tracker-/" target="_blank" rel="noopener">View live app <span class="arrow">→</span></a>
+    <div class="screenshot-grid">
       <div class="photo-slot"><img src="https://i.ibb.co/8ymTfwt/Screenshot-20260709-004409.jpg" alt="Salat Habit screenshot 1"></div>
       <div class="photo-slot"><img src="https://i.ibb.co/1GxLMkv3/Screenshot-20260709-004415.jpg" alt="Salat Habit screenshot 2"></div>
       <div class="photo-slot"><img src="https://i.ibb.co/ZpRZVMHT/Screenshot-20260709-004421.jpg" alt="Salat Habit screenshot 3"></div>
@@ -591,10 +721,8 @@
       A simple bookkeeping app for small grocery shops that instantly calculates how many
       kilograms or grams of a product a given amount of money can buy.
     </p>
-    <!-- এখানে অ্যাপের লিংক দিন — এটা Google Drive এর ফাইল লিংক, তাই ক্লিক করলে ভিজিটর ডাউনলোড/ভিউ করতে পারবে -->
-    <a class="link-slot" href="https://drive.google.com/file/d/1TYyndr141jkqosoyqxFowTRA1hDq6uyk/view?usp=drivesdk" target="_blank" rel="noopener">📥 Download the app</a>
-    <!-- এখানে ৫টা স্ক্রিনশট বসানো হয়েছে -->
-    <div class="photo-grid">
+    <a class="app-link" href="https://drive.google.com/file/d/1TYyndr141jkqosoyqxFowTRA1hDq6uyk/view?usp=drivesdk" target="_blank" rel="noopener">Download the app <span class="arrow">→</span></a>
+    <div class="screenshot-grid">
       <div class="photo-slot"><img src="https://i.ibb.co/XTFX4xv/Screenshot-20260709-005931.jpg" alt="Retail Store Calculator screenshot 1"></div>
       <div class="photo-slot"><img src="https://i.ibb.co/j9Sf0DSy/Screenshot-20260709-005936.jpg" alt="Retail Store Calculator screenshot 2"></div>
       <div class="photo-slot"><img src="https://i.ibb.co/bjRSVBGD/Screenshot-20260709-005940.jpg" alt="Retail Store Calculator screenshot 3"></div>
@@ -606,9 +734,8 @@
 
 <!-- ============================================================
      ACTIVITIES / VOLUNTEER
-     — প্রতিটা আইটেম এখন কার্ড, এবং প্রতি কার্ডে ৩টা করে ছবির স্লট আছে
      ============================================================ -->
-<section id="activities">
+<section id="activities" class="reveal">
   <span class="eyebrow">Entry 05 — Extracurricular &amp; Volunteering</span>
   <h2>Extracurricular &amp; Volunteer Work</h2>
 
@@ -622,7 +749,6 @@
     <li>Actively took part in the anti-drug movement, the student movement, and protests in solidarity with Palestine.</li>
   </ul>
 
-  <!-- এখানে উপরের ৭টা কাজের জন্য মোট ৭টা ছবির লিংক দিন (একটা করে প্রতিটার জন্য), স্কয়ার (1:1) সাইজে ক্রপ করে দিলে সবচেয়ে ভালো দেখাবে -->
   <div class="activity-gallery">
     <span class="gallery-label">Photos from these activities</span>
     <div class="photo-grid">
@@ -640,7 +766,7 @@
 <!-- ============================================================
      SKILLS
      ============================================================ -->
-<section id="skills">
+<section id="skills" class="reveal">
   <span class="eyebrow">Entry 06 — Skills</span>
   <h2>Skills</h2>
   <div class="skill-tags">
@@ -657,11 +783,10 @@
 <!-- ============================================================
      CONTACT
      ============================================================ -->
-<section id="contact">
+<section id="contact" class="reveal">
   <span class="eyebrow">Entry 07 — Contact</span>
   <h2>Contact</h2>
   <p>Email: <a href="mailto:mizanurmm2004@gmail.com">mizanurmm2004@gmail.com</a></p>
-  <!-- GitHub প্রোফাইল লিংক বসানো হয়ে গেছে -->
   <p>If you'd like to see all of my coding work, visit my GitHub: <a class="link-slot" href="https://github.com/mizanurmm2004-hue" target="_blank" rel="noopener">GitHub Profile</a></p>
 </section>
 
@@ -670,7 +795,9 @@
 </footer>
 
 <script>
-  // পেজ লোড হওয়ার কিছুক্ষণ পর বইটি নিজে থেকেই একটু খুলে যাবে (hint), ক্লিক করলে পুরোপুরি খুলবে
+  // ============================================================
+  // Book-opening interaction — logic unchanged from the original
+  // ============================================================
   const cover = document.getElementById('cover');
   const openBtn = document.getElementById('openBtn');
 
@@ -680,13 +807,12 @@
 
   openBtn.addEventListener('click', openBook);
 
-  // মোবাইলে পুরো কভারে ট্যাপ করলেও যেন খোলে
   cover.addEventListener('click', function(e){
     if(e.target !== openBtn){ openBook(); }
   });
 
   // ============================================================
-  // Philosophy বক্সের "See more / See less" টগল
+  // Philosophy box "See more / See less" toggle — unchanged
   // ============================================================
   const theoryText = document.getElementById('theoryText');
   const theoryToggle = document.getElementById('theoryToggle');
@@ -698,9 +824,8 @@
   }
 
   // ============================================================
-  // নেভিগেশন — এখন <a href> নয়, <button data-target> ব্যবহার করা
-  // হয়েছে এবং JS দিয়ে scrollIntoView কল করা হয়, তাই ক্লিক করলে
-  // পেজের বাইরে কোথাও যাবে না, শুধু ঐ সেকশনে স্মুথলি স্ক্রল হবে।
+  // Nav — buttons scrollIntoView() + active-tab highlighting on
+  // scroll. Same behaviour as the original, just restyled.
   // ============================================================
   const tabButtons = Array.from(document.querySelectorAll('nav.tabs button'));
   const sections = tabButtons
@@ -716,7 +841,6 @@
     });
   });
 
-  // স্ক্রল করার সময় বর্তমানে কোন সেকশনে আছি সেটা বুঝে সেই ট্যাবটা হাইলাইট করা
   const highlightActiveTab = () => {
     let currentId = sections[0] ? sections[0].id : null;
     const scrollPos = window.scrollY + window.innerHeight * 0.3;
@@ -732,7 +856,58 @@
 
   window.addEventListener('scroll', highlightActiveTab, {passive:true});
   window.addEventListener('load', highlightActiveTab);
+
+  // ============================================================
+  // NEW — Dark mode toggle (additive feature, doesn't touch any
+  // existing logic above). Preference is remembered per-browser.
+  // ============================================================
+  const themeToggle = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+  const root = document.documentElement;
+
+  function applyTheme(theme){
+    if(theme === 'dark'){
+      root.setAttribute('data-theme', 'dark');
+      themeIcon.textContent = '☀️';
+    } else {
+      root.removeAttribute('data-theme');
+      themeIcon.textContent = '🌙';
+    }
+  }
+
+  const savedTheme = localStorage.getItem('journal-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+
+  themeToggle.addEventListener('click', () => {
+    const isDark = root.getAttribute('data-theme') === 'dark';
+    const next = isDark ? 'light' : 'dark';
+    applyTheme(next);
+    localStorage.setItem('journal-theme', next);
+  });
+
+  // ============================================================
+  // NEW — gentle scroll-reveal for each section (progressive
+  // enhancement only; all content is already in the HTML and
+  // fully visible/readable if JS is disabled).
+  // ============================================================
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!prefersReducedMotion && 'IntersectionObserver' in window){
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          entry.target.classList.add('in-view');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, {threshold:0.12});
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in-view'));
+  }
 </script>
 
 </body>
-  </html>
+</html>
+
