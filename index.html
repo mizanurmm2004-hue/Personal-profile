@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Md. Mizanur Rahman — Field Notes of a Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ================================================================
+     1. DESIGN TOKENS
+     A single indigo → violet → cyan gradient system carries the whole
+     page. Fraunces stays for headings (keeps the "journal" warmth),
+     Inter takes over the UI/body text for a crisp modern read, and
+     JetBrains Mono covers labels/eyebrows/data — three roles, three
+     faces, used consistently everywhere.
+     ================================================================ */
+  :root{
+    /* brand gradient ramp */
+    --primary:#6366F1;
+    --primary-dark:#4F46E5;
+    --secondary:#8B5CF6;
+    --accent:#06B6D4;
+    --success:#10B981;
+
+    /* light surface system */
+    --bg-start:#F8FAFC;
+    --bg-end:#EEF2FF;
+    --surface:rgba(255,255,255,0.70);
+    --surface-solid:#FFFFFF;
+    --border:rgba(99,102,241,0.14);
+    --shadow-color:rgba(79,70,229,0.16);
+
+    /* type */
+    --ink:#1E1B3A;
+    --ink-soft:#5B5A78;
+    --ink-faint:#8888A6;
+
+    --display:'Fraunces', serif;
+    --body:'Inter', 'Hind Siliguri', sans-serif;
+    --mono:'JetBrains Mono', monospace;
+
+    --gradient-brand:linear-gradient(135deg, var(--primary) 0%, var(--secondary) 55%, var(--accent) 100%);
+    --gradient-soft:linear-gradient(180deg, var(--bg-start), var(--bg-end));
+
+    --radius-lg:24px;
+    --radius-md:18px;
+    --radius-sm:12px;
+
+    color-scheme: light;
+  }
+
+  /* ----------------------------------------------------------------
+     Dark mode — beautiful navy gradient, same brand ramp brightened
+     slightly so it still glows against the deep background.
+     ---------------------------------------------------------------- */
+  [data-theme="dark"]{
+    --primary:#818CF8;
+    --primary-dark:#6366F1;
+    --secondary:#A78BFA;
+    --accent:#22D3EE;
+    --success:#34D399;
+
+    --bg-start:#0F172A;
+    --bg-end:#1E293B;
+    --surface:rgba(30,41,59,0.62);
+    --surface-solid:#182337;
+    --border:rgba(139,92,246,0.28);
+    --shadow-color:rgba(0,0,0,0.45);
+
+    --ink:#E7E9F5;
+    --ink-soft:#A5ACC7;
+    --ink-faint:#6E7591;
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    color:var(--ink);
+    font-family:var(--body);
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+    background:var(--gradient-soft);
+    background-attachment:fixed;
+    transition:background .5s ease, color .5s ease;
+    overflow-x:hidden;
+  }
+
+  /* ambient gradient "aurora" blobs — the one signature atmospheric
+     touch; slow, quiet, and switched off for reduced-motion users */
+  .aurora{
+    position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+  }
+  .aurora span{
+    position:absolute; border-radius:50%; filter:blur(90px); opacity:.35;
+    animation:drift 26s ease-in-out infinite alternate;
+  }
+  .aurora span:nth-child(1){
+    width:480px;height:480px; top:-160px; left:-120px;
+    background:var(--primary); animation-delay:0s;
+  }
+  .aurora span:nth-child(2){
+    width:420px;height:420px; top:30%; right:-160px;
+    background:var(--secondary); animation-delay:-8s;
+  }
+  .aurora span:nth-child(3){
+    width:380px;height:380px; bottom:-140px; left:20%;
+    background:var(--accent); animation-delay:-16s;
+  }
+  @keyframes drift{
+    0%{transform:translate(0,0) scale(1);}
+    100%{transform:translate(40px,50px) scale(1.12);}
+  }
+  [data-theme="dark"] .aurora span{opacity:.22;}
+
+  h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;color:var(--ink);letter-spacing:-0.01em;}
+  a{color:var(--primary-dark);}
+  img{max-width:100%;display:block;}
+  ::selection{background:var(--primary);color:#fff;}
+
+  /* visible, on-brand focus ring for keyboard users */
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:3px;
+    border-radius:6px;
+  }
+
+  /* ================================================================
+     2. NAVIGATION
+     The old paper "binding" becomes a slim gradient spine — a quiet
+     nod to bookbinding — paired with a floating glass pill dock.
+     Behaviour is unchanged: buttons still just scrollIntoView().
+     ================================================================ */
+  .spine{
+    position:fixed; left:46px; top:0; bottom:0; width:2px;
+    background:var(--gradient-brand); opacity:.25; z-index:40;
+  }
+  nav.tabs{
+    position:fixed; top:50%; left:20px; transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:4px;
+    padding:10px; z-index:49;
+    background:var(--surface);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--border);
+    border-radius:999px;
+    box-shadow:0 12px 32px var(--shadow-color);
+  }
+  nav.tabs button{
+    all:unset; cursor:pointer; text-align:center;
+    color:var(--ink-soft);
+    font-family:var(--mono);
+    font-size:0.72rem;
+    letter-spacing:0.04em;
+    padding:10px 14px;
+    border-radius:999px;
+    white-space:nowrap;
+    transition:background .35s ease, color .35s ease, transform .35s ease;
+  }
+  nav.tabs button:hover{background:rgba(99,102,241,0.10); color:var(--primary-dark);}
+  nav.tabs button.active{
+    background:var(--gradient-brand);
+    color:#fff;
+    box-shadow:0 6px 16px var(--shadow-color);
+  }
+
+  /* theme toggle — floating glass circle, top right */
+  .theme-toggle{
+    all:unset; cursor:pointer;
+    position:fixed; top:20px; right:20px; z-index:60;
+    width:46px; height:46px; display:flex; align-items:center; justify-content:center;
+    border-radius:50%;
+    background:var(--surface);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border:1px solid var(--border);
+    box-shadow:0 8px 20px var(--shadow-color);
+    font-size:1.1rem;
+    transition:transform .35s ease, box-shadow .35s ease;
+  }
+  .theme-toggle:hover{transform:translateY(-2px) rotate(12deg); box-shadow:0 12px 28px var(--shadow-color);}
+
+  @media (max-width:760px){
+    .spine{display:none;}
+    nav.tabs{
+      top:0; left:0; right:0; bottom:auto; transform:none;
+      flex-direction:row; overflow-x:auto;
+      border-radius:0 0 20px 20px;
+      justify-content:flex-start;
+      padding:10px 12px;
+      width:100%;
+    }
+    nav.tabs button{padding:8px 14px;}
+    .theme-toggle{top:auto; bottom:20px; right:20px;}
+    body{padding-top:60px;}
+  }
+  @media (min-width:761px){
+    body{padding-left:120px;}
+  }
+
+  /* ================================================================
+     3. SECTION / SHARED LAYOUT
+     ================================================================ */
+  section{
+    position:relative; z-index:1;
+    max-width:760px; margin:0 auto;
+    padding:72px 24px;
+    scroll-margin-top:32px;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--mono);
+    font-size:0.72rem;
+    letter-spacing:0.1em;
+    color:var(--primary-dark);
+    text-transform:uppercase;
+    background:rgba(99,102,241,0.08);
+    border:1px solid var(--border);
+    padding:6px 14px 6px 10px;
+    border-radius:999px;
+    margin-bottom:18px;
+  }
+  .eyebrow::before{
+    content:""; width:7px; height:7px; border-radius:50%;
+    background:var(--gradient-brand); flex:none;
+  }
+  section h2{
+    font-size:2rem;
+    margin-bottom:8px;
+    position:relative;
+    display:inline-block;
+  }
+  section h2::after{
+    content:"";
+    display:block;
+    width:52px; height:4px; border-radius:99px;
+    margin-top:14px;
+    background:var(--gradient-brand);
+  }
+  section > p{color:var(--ink-soft); margin-top:22px;}
+  .entry-date{
+    font-family:var(--mono); font-size:0.75rem; color:var(--ink-faint);
+    margin-bottom:12px; display:block;
+  }
+
+  /* scroll-reveal (progressive enhancement only — content is already
+     fully visible without JS, this just adds a fade/rise on entry) */
+  .reveal{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in-view{opacity:1; transform:translateY(0);}
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1; transform:none; transition:none;}
+  }
+
+  /* ================================================================
+     4. HERO — the 3D book-opening moment stays, restyled as a
+     glass-and-gradient artifact instead of literal paper.
+     ================================================================ */
+  .hero{
+    min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .book-wrap{ perspective:2400px; width:100%; max-width:520px; }
+  .book{
+    position:relative; min-height:460px;
+    background:var(--surface);
+    backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    box-shadow:0 40px 80px var(--shadow-color);
+    overflow:hidden;
+  }
+  .page-inside{ padding:52px 36px; text-align:center; }
+  .page-inside .kicker{
+    font-family:var(--mono); font-size:0.72rem; letter-spacing:0.14em;
+    color:var(--primary-dark); text-transform:uppercase;
+  }
+  .page-inside h1{
+    font-size:2.3rem; margin:16px 0 6px;
+    background:var(--gradient-brand);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .page-inside .role{ font-family:var(--mono); color:var(--ink-soft); font-size:0.92rem; }
+  .page-inside p.tagline{
+    margin-top:24px; font-size:1rem; color:var(--ink-soft); font-style:italic;
+  }
+  .cover{
+    position:absolute; inset:0;
+    transform-origin:left center;
+    transition:transform 1.4s cubic-bezier(.6,.05,.28,.98);
+    background:var(--gradient-brand);
+    color:#fff;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:20px;
+    backface-visibility:hidden;
+    z-index:2; text-align:center; padding:24px;
+    cursor:pointer;
+  }
+  .cover::before{
+    /* soft dot texture for depth, echoes the old "paper" feel */
+    content:""; position:absolute; inset:0; opacity:.15;
+    background-image:radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px);
+    background-size:16px 16px;
+    pointer-events:none;
+  }
+  .cover.open{transform:rotateY(-165deg);}
+  .cover h1{ color:#fff; font-size:2rem; letter-spacing:0.01em; }
+  .cover .stitch{
+    font-family:var(--mono); font-size:0.7rem; letter-spacing:0.22em;
+    opacity:0.85; text-transform:uppercase;
+  }
+  .open-btn{
+    all:unset; margin-top:8px; cursor:pointer;
+    background:rgba(255,255,255,0.16);
+    border:1px solid rgba(255,255,255,0.5);
+    color:#fff;
+    font-family:var(--mono); font-size:0.82rem;
+    padding:12px 24px; border-radius:999px;
+    backdrop-filter:blur(8px);
+    transition:background .3s ease, transform .3s ease, box-shadow .3s ease;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+  }
+  .open-btn:hover{ background:rgba(255,255,255,0.28); transform:translateY(-2px); box-shadow:0 12px 26px rgba(0,0,0,0.28); }
+  .hero-hint{
+    text-align:center; margin-top:18px;
+    font-family:var(--mono); font-size:0.75rem; color:var(--ink-faint);
+    position:relative; z-index:1;
+  }
+
+  /* ================================================================
+     5. SHARED COMPONENTS — cards, photos, links, chips
+     ================================================================ */
+  .card{
+    background:var(--surface);
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:26px;
+    margin-top:20px;
+    box-shadow:0 8px 24px var(--shadow-color);
+    transition:transform .4s ease, box-shadow .4s ease, border-color .4s ease;
+  }
+  .card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 20px 44px var(--shadow-color);
+    border-color:rgba(99,102,241,0.35);
+  }
+  .card h3{ font-size:1.25rem; margin-bottom:10px; }
+  .card p{ color:var(--ink-soft); margin:0; }
+
+  /* side-by-side pairing (e.g. Certificate + Marksheet) instead of one
+     giant image stacked under another; single items just fill the row */
+  .photo-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+    gap:14px; margin-top:18px;
+  }
+  .photo-slot{
+    position:relative;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    overflow:hidden;
+    box-shadow:0 6px 16px var(--shadow-color);
+    /* shimmer placeholder shown until the image finishes loading */
+    background:linear-gradient(100deg, rgba(99,102,241,0.10) 20%, rgba(139,92,246,0.20) 40%, rgba(6,182,212,0.10) 60%);
+    background-size:200% 100%;
+    animation:shimmer 1.6s ease-in-out infinite;
+  }
+  .photo-slot.loaded{ animation:none; background:var(--surface-solid); }
+  [data-theme="dark"] .photo-slot{
+    background:linear-gradient(100deg, rgba(129,140,248,0.14) 20%, rgba(167,139,250,0.24) 40%, rgba(34,211,238,0.14) 60%);
+    background-size:200% 100%;
+  }
+  @keyframes shimmer{
+    0%{ background-position:200% 0; }
+    100%{ background-position:-200% 0; }
+  }
+  .photo-slot img{
+    width:100%; height:auto; object-fit:contain; display:block;
+    opacity:0;
+    transition:transform .5s ease, opacity .6s ease;
+  }
+  .photo-slot img.loaded{ opacity:1; }
+  .photo-slot:hover img{ transform:scale(1.02); }
+
+  /* Education thumbnails — fixed aspect ratio + cover, click to zoom */
+  #education .photo-slot{ aspect-ratio:3/4; }
+  #education .photo-slot img{ height:100%; object-fit:cover; cursor:zoom-in; }
+  #education .photo-slot::after{
+    content:"🔍"; position:absolute; bottom:10px; right:10px;
+    width:32px; height:32px; border-radius:50%;
+    background:rgba(15,23,42,0.55); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; opacity:0; transition:opacity .3s ease;
+    pointer-events:none;
+  }
+  #education .photo-slot:hover::after{ opacity:1; }
+
+  /* ----------------------------------------------------------------
+     Lightbox — click a thumbnail (Education) to see it full-size
+     ---------------------------------------------------------------- */
+  .lightbox{
+    position:fixed; inset:0; z-index:200;
+    background:rgba(15,23,42,0.86);
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    display:flex; align-items:center; justify-content:center;
+    padding:32px;
+    opacity:0; visibility:hidden;
+    transition:opacity .35s ease, visibility .35s ease;
+  }
+  .lightbox.open{ opacity:1; visibility:visible; }
+  .lightbox img{
+    max-width:92vw; max-height:88vh;
+    border-radius:18px;
+    box-shadow:0 40px 90px rgba(0,0,0,0.5);
+    transform:scale(.94);
+    transition:transform .35s ease;
+  }
+  .lightbox.open img{ transform:scale(1); }
+  .lightbox-close{
+    all:unset; position:fixed; top:24px; right:24px; cursor:pointer;
+    width:44px; height:44px; border-radius:50%;
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.3);
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; backdrop-filter:blur(10px);
+    transition:background .3s ease, transform .3s ease;
+  }
+  .lightbox-close:hover{ background:rgba(255,255,255,0.24); transform:rotate(90deg); }
+
+  /* ----------------------------------------------------------------
+     Coverflow carousel — used for the Activities photo gallery
+     ---------------------------------------------------------------- */
+  .coverflow{ position:relative; padding:16px 52px 24px; }
+  .coverflow-track{
+    position:relative; height:190px;
+    display:flex; align-items:center; justify-content:center;
+    perspective:1100px;
+    touch-action:pan-y;
+  }
+  .coverflow-slide{
+    position:absolute; width:150px; height:150px;
+    transition:transform .5s cubic-bezier(.22,.61,.36,1), opacity .5s ease;
+    cursor:pointer;
+  }
+  .coverflow-slide .photo-slot{ width:100%; height:100%; border-radius:16px; }
+  .coverflow-slide .photo-slot img{ height:100%; object-fit:cover; }
+  .coverflow-nav{
+    all:unset; position:absolute; top:50%; transform:translateY(-50%);
+    width:38px; height:38px; border-radius:50%; z-index:20;
+    background:var(--surface);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    border:1px solid var(--border);
+    box-shadow:0 8px 20px var(--shadow-color);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.3rem; color:var(--primary-dark); cursor:pointer;
+    transition:transform .3s ease, background .3s ease, color .3s ease;
+  }
+  .coverflow-nav:hover{ background:var(--gradient-brand); color:#fff; transform:translateY(-50%) scale(1.08); }
+  .coverflow-nav.prev{ left:2px; }
+  .coverflow-nav.next{ right:2px; }
+  .coverflow-hint{
+    text-align:center; margin-top:6px;
+    font-family:var(--mono); font-size:0.72rem; color:var(--ink-faint);
+  }
+  @media (max-width:480px){
+    .coverflow-slide{ width:120px; height:120px; }
+    .coverflow{ padding:16px 44px 24px; }
+  }
+
+  /* ----------------------------------------------------------------
+     Certificate slider — used only in Education, to showcase every
+     certificate/marksheet inside one animated slider. Same brand
+     gradient + surface/blur system as the rest of the page, so it
+     never looks like a bolted-on widget.
+     ---------------------------------------------------------------- */
+  .cert-slider{
+    position:relative;
+    margin-top:20px;
+    border-radius:var(--radius-lg);
+    overflow:hidden;
+    border:1px solid var(--border);
+    box-shadow:0 8px 24px var(--shadow-color);
+    background:var(--surface);
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  }
+  .cert-slider-bg{ position:absolute; inset:0; z-index:0; overflow:hidden; }
+  .cert-bg-layer{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; opacity:0.55; transform:scale(1.3);
+    filter:blur(34px) saturate(1.15) brightness(0.85);
+    transition:opacity .4s ease;
+  }
+  [data-theme="dark"] .cert-bg-layer{ opacity:0.32; }
+  .cert-bg-layer.fading{ opacity:0; }
+  .cert-slider-bg::after{
+    content:""; position:absolute; inset:0;
+    background:var(--gradient-soft); opacity:0.55;
+  }
+  [data-theme="dark"] .cert-slider-bg::after{ opacity:0.72; }
+
+  .cert-slider-inner{
+    position:relative; z-index:1;
+    display:flex; align-items:center; justify-content:center;
+    gap:14px; padding:26px 14px 0;
+  }
+  .cert-stage{
+    position:relative;
+    width:100%; max-width:340px;
+    aspect-ratio:3/4;
+    border-radius:var(--radius-md);
+    overflow:hidden;
+    background:var(--surface-solid);
+    border:1px solid var(--border);
+    box-shadow:0 16px 40px var(--shadow-color);
+  }
+  .cert-stage-layer{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:contain; background:var(--surface-solid);
+    opacity:1; transform:scale(1);
+    transition:opacity .35s ease, transform .35s ease;
+    cursor:zoom-in;
+  }
+  .cert-stage-layer.fading{ opacity:0; transform:scale(1.02); }
+  .cert-stage::after{
+    content:"🔍"; position:absolute; bottom:10px; right:10px; z-index:2;
+    width:32px; height:32px; border-radius:50%;
+    background:rgba(15,23,42,0.55); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; opacity:0; transition:opacity .3s ease;
+    pointer-events:none;
+  }
+  .cert-stage:hover::after{ opacity:1; }
+
+  .cert-arrow{
+    all:unset; flex:0 0 auto;
+    width:38px; height:38px; border-radius:50%;
+    background:var(--surface);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    border:1px solid var(--border);
+    box-shadow:0 8px 20px var(--shadow-color);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.3rem; color:var(--primary-dark); cursor:pointer;
+    transition:transform .3s ease, background .3s ease, color .3s ease;
+  }
+  .cert-arrow:hover{ background:var(--gradient-brand); color:#fff; transform:scale(1.08); }
+
+  .cert-caption-bar{
+    position:relative; z-index:1;
+    display:flex; justify-content:center;
+    padding:18px 20px 4px; text-align:center;
+  }
+  .cert-caption-inner{ max-width:420px; }
+  .cert-caption-tag{
+    display:inline-block; font-family:var(--mono); font-size:0.72rem;
+    letter-spacing:0.04em; color:#fff;
+    background:var(--gradient-brand);
+    padding:4px 12px; border-radius:20px; margin-bottom:8px;
+  }
+  .cert-caption-text{ margin:0; color:var(--ink); font-weight:500; }
+  .cert-caption-inner.cert-in-up{ animation:certCaptionUp .45s ease; }
+  .cert-caption-inner.cert-in-down{ animation:certCaptionDown .45s ease; }
+  @keyframes certCaptionUp{ 0%{ transform:translateY(14px); opacity:0; } 100%{ transform:translateY(0); opacity:1; } }
+  @keyframes certCaptionDown{ 0%{ transform:translateY(-14px); opacity:0; } 100%{ transform:translateY(0); opacity:1; } }
+
+  .cert-dots{
+    position:relative; z-index:1;
+    display:flex; align-items:center; justify-content:center;
+    gap:10px; padding:14px 20px 22px; flex-wrap:wrap;
+  }
+  .cert-dot{
+    width:22px; height:22px; border-radius:50%;
+    background:var(--border);
+    display:flex; align-items:center; justify-content:center;
+    transform:scale(0.75); cursor:pointer;
+    transition:all .3s ease;
+  }
+  .cert-dot-num{
+    font-family:var(--mono); font-size:0.65rem; color:var(--ink-soft);
+    opacity:0; transition:opacity .3s ease;
+  }
+  .cert-dot.active{ background:var(--gradient-brand); transform:scale(1); }
+  .cert-dot.active .cert-dot-num{ opacity:1; color:#fff; }
+
+  @media (max-width:480px){
+    .cert-slider-inner{ gap:8px; padding:20px 8px 0; }
+    .cert-stage{ max-width:260px; }
+    .cert-arrow{ width:32px; height:32px; font-size:1.1rem; }
+  }
+
+  /* ----------------------------------------------------------------
+     Contact cards — replaces the old plain text links with two
+     glass cards, same hover-lift language as .card / .app-link.
+     ---------------------------------------------------------------- */
+  .contact-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:16px; margin-top:26px;
+  }
+  .contact-card{
+    display:flex; align-items:center; gap:16px;
+    background:var(--surface);
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:20px 22px;
+    text-decoration:none; color:var(--ink);
+    box-shadow:0 8px 24px var(--shadow-color);
+    transition:transform .35s ease, box-shadow .35s ease, border-color .35s ease;
+  }
+  .contact-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 20px 44px var(--shadow-color);
+    border-color:rgba(99,102,241,0.35);
+  }
+  .contact-icon{
+    flex:0 0 auto; width:48px; height:48px; border-radius:14px;
+    background:var(--gradient-brand); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 18px var(--shadow-color);
+  }
+  .contact-icon svg{ width:22px; height:22px; }
+  .contact-body{
+    display:flex; flex-direction:column; gap:3px;
+    min-width:0; flex:1 1 auto;
+  }
+  .contact-label{
+    font-family:var(--mono); font-size:0.72rem; letter-spacing:0.06em;
+    color:var(--ink-faint); text-transform:uppercase;
+  }
+  .contact-value{
+    font-weight:600; color:var(--ink);
+    overflow-wrap:anywhere; word-break:break-word;
+  }
+  .contact-go{
+    flex:0 0 auto; font-size:1.2rem; color:var(--primary-dark);
+    transition:transform .3s ease, color .3s ease;
+  }
+  .contact-card:hover .contact-go{ transform:translateX(4px); color:var(--accent); }
+
+  @media (max-width:480px){
+    .contact-card{ padding:16px; gap:12px; }
+    .contact-icon{ width:40px; height:40px; border-radius:12px; }
+    .contact-icon svg{ width:19px; height:19px; }
+  }
+
+  /* ----------------------------------------------------------------
+     Tablet tuning — the layout already scales down to phone width
+     and up to desktop width; this just softens the in-between range
+     (most tablets, small laptops) so text and spacing don't feel
+     too tight or too loose.
+     ---------------------------------------------------------------- */
+  @media (min-width:761px) and (max-width:1024px){
+    body{ padding-left:88px; }
+    nav.tabs{ left:14px; padding:8px; }
+    section{ max-width:640px; padding:64px 22px; }
+  }
+  @media (min-width:1025px){
+    section{ max-width:780px; }
+  }
+
+  .link-slot{
+    display:inline-block; margin-top:14px;
+    font-family:var(--mono); font-size:0.85rem;
+    color:var(--primary-dark);
+    border-bottom:1px dashed var(--primary-dark);
+    transition:color .3s ease, border-color .3s ease;
+  }
+  .link-slot:hover{ color:var(--accent); border-color:var(--accent); }
+
+  /* Play-Store style horizontal screenshot rail */
+  .screenshot-grid{
+    display:flex; gap:16px; overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    margin-top:18px; padding-bottom:12px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .screenshot-grid::-webkit-scrollbar{ height:6px; }
+  .screenshot-grid::-webkit-scrollbar-thumb{ background:var(--gradient-brand); border-radius:10px; }
+  .screenshot-grid .photo-slot{
+    flex:0 0 auto; width:150px; aspect-ratio:9/19;
+    scroll-snap-align:start;
+    border-radius:20px;
+    box-shadow:0 10px 24px var(--shadow-color);
+  }
+  .screenshot-grid .photo-slot img{ width:100%; height:100%; object-fit:cover; }
+
+  /* gradient pill CTA — "View live app" / "Download the app" */
+  .app-link{
+    display:inline-flex; align-items:center; gap:8px;
+    margin-top:16px;
+    background:var(--gradient-brand);
+    color:#fff; text-decoration:none;
+    font-family:var(--mono); font-size:0.82rem; letter-spacing:0.03em;
+    padding:11px 22px;
+    border-radius:999px;
+    box-shadow:0 10px 24px var(--shadow-color);
+    transition:transform .35s ease, box-shadow .35s ease, filter .35s ease;
+  }
+  .app-link:hover{
+    transform:translateY(-3px) scale(1.03);
+    box-shadow:0 16px 34px var(--shadow-color);
+    filter:brightness(1.08);
+  }
+  .app-link .arrow{ display:inline-block; transition:transform .3s ease; }
+  .app-link:hover .arrow{ transform:translateX(4px); }
+
+  /* philosophy / theory box */
+  .theory-box{
+    margin-top:22px;
+    background:var(--surface);
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:30px 28px 22px;
+    position:relative;
+    overflow:hidden;
+  }
+  .theory-box::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:4px;
+    background:var(--gradient-brand);
+  }
+  .theory-box p{ margin:0 0 16px; color:var(--ink-soft); }
+  .theory-box p:last-child{ margin-bottom:0; }
+  .theory-text{
+    position:relative; max-height:210px; overflow:hidden;
+    transition:max-height .6s ease;
+  }
+  .theory-text.expanded{ max-height:4000px; }
+  .theory-text::after{
+    content:""; position:absolute; left:0; right:0; bottom:0; height:80px;
+    background:linear-gradient(to bottom, transparent, var(--bg-end));
+    pointer-events:none; transition:opacity .3s ease;
+  }
+  [data-theme="dark"] .theory-text::after{
+    background:linear-gradient(to bottom, transparent, var(--bg-end));
+  }
+  .theory-text.expanded::after{ opacity:0; }
+  .see-more-btn{
+    all:unset; cursor:pointer; margin-top:18px; display:inline-block;
+    font-family:var(--mono); font-size:0.8rem; letter-spacing:0.05em;
+    background:var(--gradient-brand);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    border-bottom:1px dashed var(--primary-dark);
+    padding-bottom:2px;
+    transition:opacity .3s ease;
+  }
+  .see-more-btn:hover{ opacity:.75; }
+
+  /* activities */
+  ul.activity-list{ list-style:none; padding:0; margin:22px 0 0; }
+  ul.activity-list li{
+    position:relative; padding-left:26px; margin-bottom:16px; color:var(--ink-soft);
+  }
+  ul.activity-list li::before{
+    content:""; position:absolute; left:0; top:9px;
+    width:9px; height:9px; border-radius:50%;
+    background:var(--gradient-brand);
+  }
+  .activity-gallery{
+    margin-top:32px; padding-top:24px;
+    border-top:1px solid var(--border);
+  }
+  .activity-gallery .gallery-label{
+    font-family:var(--mono); font-size:0.76rem; letter-spacing:0.1em;
+    color:var(--ink-faint); text-transform:uppercase;
+    margin-bottom:14px; display:block;
+  }
+
+  /* skills — outline chips that fill with the brand gradient on hover */
+  .skill-tags{ display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
+  .skill-tags span{
+    font-family:var(--mono); font-size:0.8rem;
+    color:var(--primary-dark);
+    background:rgba(99,102,241,0.08);
+    border:1px solid var(--border);
+    padding:8px 16px;
+    border-radius:999px;
+    transition:background .35s ease, color .35s ease, transform .35s ease;
+  }
+  .skill-tags span:hover{
+    background:var(--gradient-brand);
+    color:#fff;
+    transform:translateY(-2px);
+  }
+
+  footer{
+    text-align:center;
+    padding:44px 24px 90px;
+    font-family:var(--mono); font-size:0.8rem; color:var(--ink-faint);
+    border-top:1px solid var(--border);
+    margin-top:20px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .cover{ transition:none; }
+    .aurora span{ animation:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ambient gradient atmosphere (decorative only, aria-hidden) -->
+<div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+<div class="spine" aria-hidden="true"></div>
+
+<!-- Navigation — same <button data-target> + scrollIntoView pattern as
+     before, just restyled as a floating glass pill dock -->
+<nav class="tabs" id="tabs" aria-label="Section navigation">
+  <button data-target="home">Home</button>
+  <button data-target="about">About</button>
+  <button data-target="education">Education</button>
+  <button data-target="philosophy">Philosophy</button>
+  <button data-target="projects">Projects</button>
+  <button data-target="activities">Activities</button>
+  <button data-target="skills">Skills</button>
+  <button data-target="contact">Contact</button>
+</nav>
+
+<!-- Light/dark theme toggle — additive feature, doesn't touch any
+     existing logic. Preference persists in localStorage. -->
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+  <span id="themeIcon">🌙</span>
+</button>
+
+<!-- ============================================================
+     HERO — 3D book-opening animation
+     ============================================================ -->
+<section id="home" class="hero">
+  <div class="book-wrap">
+    <div class="book" id="book">
+      <div class="page-inside">
+        <span class="kicker">Field Notes / Software Developer</span>
+        <h1>Notes of<br>a Builder</h1>
+        <div class="role">A journal of what I've learned, thought about, and built.</div>
+        <p class="tagline">"AI is like a wave in the ocean — fight it and you'll drown, ride it and it will carry you far."</p>
+      </div>
+      <div class="cover" id="cover">
+        <div class="stitch">Personal Journal · Est. 2024</div>
+        <h1>Md. Mizanur Rahman</h1>
+        <div class="role" style="color:#fff;opacity:0.9;">Software Engineer &amp; Builder</div>
+        <button class="open-btn" id="openBtn">Open the Book</button>
+      </div>
+    </div>
+  </div>
+</section>
+<p class="hero-hint">↓ Scroll to keep reading the journal</p>
+
+<!-- ============================================================
+     ABOUT
+     ============================================================ -->
+<section id="about" class="reveal">
+  <span class="eyebrow">Entry 01 — About Me</span>
+  <h2>About Me</h2>
+  <p>
+    My name is Md. Mizanur Rahman. I'm an emerging, self-taught programmer. In this age of AI,
+    many people believe the window for becoming a software engineer is closing — that AI will
+    simply take the jobs. I believe the opposite: right now is one of the best times to become
+    a software engineer. Work that once needed a team of five or six people can now be done by
+    one person, and projects that once took months can now be built in a fraction of that time
+    with AI's help.
+  </p>
+  <p>
+    To me, AI is like a large wave in the ocean — swim against it and you'll be pulled under,
+    but ride with it and it will carry you much further than you could go alone. I believe AI
+    has closed much of the distance between an idea and its execution. To prove that to myself,
+    I've used my basic coding skills to find real problems around me and build working solutions
+    for them.
+  </p>
+  <p>
+    Going forward, I want to go deeper into Machine Learning and Computer Vision, and bring
+    along the people who are struggling to keep pace with technology.
+  </p>
+</section>
+
+<!-- ============================================================
+     EDUCATION
+     ============================================================ -->
+<section id="education" class="reveal">
+  <span class="eyebrow">Entry 02 — Education</span>
+  <h2>Education</h2>
+
+  <!-- Certificate slider — replaces the old static photo-grid cards.
+       Every certificate/marksheet lives in one animated slider now. -->
+  <div class="cert-slider" id="certSlider">
+    <div class="cert-slider-bg">
+      <img class="cert-bg-layer" id="certBg" alt="">
+    </div>
+    <div class="cert-slider-inner">
+      <button class="cert-arrow prev" id="certPrev" aria-label="Previous certificate">‹</button>
+      <div class="cert-stage" id="certStage">
+        <img class="cert-stage-layer" id="certStageImg" alt="">
+      </div>
+      <button class="cert-arrow next" id="certNext" aria-label="Next certificate">›</button>
+    </div>
+    <div class="cert-caption-bar">
+      <div class="cert-caption-inner" id="certCaptionInner">
+        <span class="cert-caption-tag" id="certCaptionTag"></span>
+        <p class="cert-caption-text" id="certCaptionText"></p>
+      </div>
+    </div>
+    <div class="cert-dots" id="certDots"></div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PHILOSOPHY / THEORY
+     ============================================================ -->
+<section id="philosophy" class="reveal">
+  <span class="eyebrow">Entry 03 — My Philosophy</span>
+  <h2>My Theory &amp; My Apps</h2>
+
+  <div class="theory-box">
+    <div class="theory-text" id="theoryText">
+      <p>There has never been a better time to be a software engineer. I know a lot of you are scared because of this whole AI wave, but if you're like me, you got into coding because you loved the idea of building something real — something another person could actually use, something that might blow up and change lives… all from just a laptop and an idea.</p>
+      <p>And honestly, that dream has never been more realistic than right now. What used to need a whole team of five people can now be done by one. Things that took years of grinding syntax, reading docs, and writing every single line by hand — you can now do in a fraction of the time.</p>
+      <p>I know everywhere you look, people in the comments are saying "AI is going to wipe out all developers." But the ones getting wiped out aren't bad coders. They're just stuck in the old way of doing things, and that world is slowly disappearing.</p>
+      <p>The people who are winning right now are different. You know that guy in your class who had five internships and a job already lined up? Or the one who built something so good that a company just hired him? Or the regular backend engineer who started using AI and suddenly owns entire systems he never touched before? Or the random dev making $50 a month from a tool he built over a weekend? Or the founders building with just two people instead of twenty?</p>
+      <p>They're all winning for the same reason — they understood the new rules faster. They figured out what to build, how to build it fast, and how to use every tool available to close the gap between their ideas and reality.</p>
+      <p>So instead of getting crushed by this wave, imagine two kinds of people:</p>
+      <p>First, the spectator. For whatever reason, they never really jumped into AI. Maybe it feels too overwhelming — LLMs, RAG, agents, GPT, Claude, OpenAI, Anthropic… after a while it all just becomes noise. Or they think using AI makes them a worse programmer, so they stay away.</p>
+      <p>Then there's the surfer. The surfer gets that programming has always been about abstraction. Nobody calls you fake for using frameworks, libraries, Stack Overflow, or copying open-source code you don't fully understand. So instead of fighting the wave, they ride it.</p>
+      <p>They use AI to learn faster, experiment faster, and close the gap between what they can imagine and what they can actually ship. Maybe you're building web apps and you scaffold an entire dashboard in a day. Or you're working on a game and AI helps you understand some hard graphics concept that would've taken hours to figure out from docs.</p>
+      <p>The leverage looks different for everyone, but the surfers are always experimenting. They shorten the distance between idea and execution. They automate the boring parts, understand new codebases quickly, prototype fast, debug faster, and learn at crazy speed. Their feedback loops are super short.</p>
+      <p>And that's becoming super important — because software engineering is turning into a creativity game. The winners are the ones who notice things, connect ideas, build weird little tools nobody thought of, and chase their curiosity before the excitement fades. A few years ago, testing a big idea had huge barriers. Now a random student can lock in for a weekend and build something thousands of people end up using.</p>
+      <p>A lot of developers still haven't accepted how big this shift really is. They're still waiting to "know enough" or master one more framework. Meanwhile, the surfers are already in the water — building, testing, learning, shipping, and adjusting.</p>
+      <p>Programming isn't about manually typing every brick anymore. It's about deciding what should exist in the first place. The bottleneck now isn't "Can you write the code?" It's "Can you think clearly? Can you spot good ideas? Can you move fast and learn quickly enough to match your own ambition?"</p>
+      <p>AI doesn't remove the need for builders — it actually raises the ceiling for those who keep building.</p>
+      <p>But here's the thing — you can't just build in silence anymore. The people getting opportunities right now (internships, referrals, startup jobs, research positions) are usually the ones who are visible. They're posting their projects on LinkedIn, making short demo videos on Twitter, or just writing about what they learned — even if it's a bug, a failed project, or a random opinion.</p>
+      <p>You don't need a perfect portfolio. You just need a visible one. Companies like OpenAI or Anthropic aren't just looking for people who are "interested" — they want builders who are already in motion.</p>
+      <p>And finally, stop overthinking whether your idea is "good enough" for your resume. Stop waiting until you feel skilled enough. The people improving fastest are the ones who just use everything available — AI, templates, GitHub repos — and build anyway. Even if it feels messy, too ambitious, or not good enough. That's exactly how you grow.</p>
+      <p>The fastest way to become that kind of programmer is to stop negotiating with yourself every time you get an idea. Just build it, ship it, show it, and iterate. Slowly your confidence and identity will catch up with your actions.</p>
+      <p>And the one thing that ties all of this together is never stopping learning.</p>
+    </div>
+    <button class="see-more-btn" id="theoryToggle">See more ↓</button>
+  </div>
+</section>
+
+<!-- ============================================================
+     PROJECTS
+     ============================================================ -->
+<section id="projects" class="reveal">
+  <span class="eyebrow">Entry 04 — Projects</span>
+  <h2>Apps I've Built</h2>
+
+  <div class="card">
+    <h3>Khamari-Bondu (Farmer's Friend)</h3>
+    <p>
+      A live livestock-tracking app that helps rural farmers work out a fair market price for
+      their animals, sends reminders for vaccinations and other essential care, and tracks an
+      animal's growth over time through photos.
+    </p>
+    <a class="app-link" href="https://mizanurmm2004-hue.github.io/khamari-bondu/" target="_blank" rel="noopener">View live app <span class="arrow">→</span></a>
+    <div class="screenshot-grid">
+      <div class="photo-slot"><img src="https://i.ibb.co/4n15hXBr/Screenshot-20260709-000737.jpg" alt="Khamari-Bondu screenshot 1" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/j9y3msD9/Screenshot-20260709-003710.jpg" alt="Khamari-Bondu screenshot 2" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/Xrx7GSCB/Screenshot-20260709-003729.jpg" alt="Khamari-Bondu screenshot 3" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/k6vmsYdN/Screenshot-20260709-003828.jpg" alt="Khamari-Bondu screenshot 4" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/svRLxd1Y/Screenshot-20260709-003851.jpg" alt="Khamari-Bondu screenshot 5" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/fz5cV12W/Screenshot-20260709-003911.jpg" alt="Khamari-Bondu screenshot 6" loading="lazy" decoding="async"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Essay Call App</h3>
+    <p>
+      An app built for elderly people with little or no formal education. Contacts are saved
+      using voice labels and photos instead of text, so it can be used without needing to read.
+      Family members can remotely save numbers to the elderly person's phone, and an emergency
+      button is included for urgent situations.
+    </p>
+    <a class="app-link" href="https://mizanurmm2004-hue.github.io/Esay-calling-app/" target="_blank" rel="noopener">View live app <span class="arrow">→</span></a>
+    <div class="screenshot-grid">
+      <div class="photo-slot"><img src="https://i.ibb.co/PGPCdhGj/Screenshot-20260709-005613.jpg" alt="Essay Call screenshot 1" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/1GbC9M5p/Screenshot-20260709-005619.jpg" alt="Essay Call screenshot 2" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/fzskDJHm/Screenshot-20260709-005631.jpg" alt="Essay Call screenshot 3" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/LzbH1NRz/Screenshot-20260709-005635.jpg" alt="Essay Call screenshot 4" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/1GbhBdZ0/Screenshot-20260709-005642.jpg" alt="Essay Call screenshot 5" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/0yZ8dd00/Screenshot-20260709-005655.jpg" alt="Essay Call screenshot 6" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/YB3f1bn3/Screenshot-20260709-005716.jpg" alt="Essay Call screenshot 7" loading="lazy" decoding="async"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Salat Habit Making</h3>
+    <p>
+      An app designed to help build a consistent prayer habit and break free of phone addiction.
+      Starting 10–20 minutes before prayer time it shows hadiths about the importance of prayer,
+      auto-locks the phone at the set time, can request a photo as proof of prayer, and keeps
+      a running count of missed prayers.
+    </p>
+    <a class="app-link" href="https://mizanurmm2004-hue.github.io/Solat-tracker-/" target="_blank" rel="noopener">View live app <span class="arrow">→</span></a>
+    <div class="screenshot-grid">
+      <div class="photo-slot"><img src="https://i.ibb.co/8ymTfwt/Screenshot-20260709-004409.jpg" alt="Salat Habit screenshot 1" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/1GxLMkv3/Screenshot-20260709-004415.jpg" alt="Salat Habit screenshot 2" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/ZpRZVMHT/Screenshot-20260709-004421.jpg" alt="Salat Habit screenshot 3" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/DBvyLLY/Screenshot-20260709-004427.jpg" alt="Salat Habit screenshot 4" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/RTq5bZNY/Screenshot-20260709-004443.jpg" alt="Salat Habit screenshot 5" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/svd7mnPd/Screenshot-20260709-004450.jpg" alt="Salat Habit screenshot 6" loading="lazy" decoding="async"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Retail Store Calculator</h3>
+    <p>
+      A simple bookkeeping app for small grocery shops that instantly calculates how many
+      kilograms or grams of a product a given amount of money can buy.
+    </p>
+    <a class="app-link" href="https://drive.google.com/file/d/1TYyndr141jkqosoyqxFowTRA1hDq6uyk/view?usp=drivesdk" target="_blank" rel="noopener">Download the app <span class="arrow">→</span></a>
+    <div class="screenshot-grid">
+      <div class="photo-slot"><img src="https://i.ibb.co/XTFX4xv/Screenshot-20260709-005931.jpg" alt="Retail Store Calculator screenshot 1" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/j9Sf0DSy/Screenshot-20260709-005936.jpg" alt="Retail Store Calculator screenshot 2" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/bjRSVBGD/Screenshot-20260709-005940.jpg" alt="Retail Store Calculator screenshot 3" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/zWNZ3sRR/Screenshot-20260709-005948.jpg" alt="Retail Store Calculator screenshot 4" loading="lazy" decoding="async"></div>
+      <div class="photo-slot"><img src="https://i.ibb.co/4RbSr4tW/Screenshot-20260709-005955.jpg" alt="Retail Store Calculator screenshot 5" loading="lazy" decoding="async"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ACTIVITIES / VOLUNTEER
+     ============================================================ -->
+<section id="activities" class="reveal">
+  <span class="eyebrow">Entry 05 — Extracurricular &amp; Volunteering</span>
+  <h2>Extracurricular &amp; Volunteer Work</h2>
+
+  <ul class="activity-list">
+    <li>Collected old clothes and money for flood victims while living in the college hostel in 2024, and helped distribute them to affected families.</li>
+    <li>Worked with "BD Clean" on environmental protection efforts.</li>
+    <li>Won an app-idea competition held by the Root &amp; Promaning Club at college in 2025. The idea: an AI bot that uses dopamine release to help people build new skills — it generates short videos to teach whatever the user wants to learn, and analyzes user behavior to suggest what to learn next.</li>
+    <li>Member of the village volleyball club, playing as libero.</li>
+    <li>Gave free English tuition to children in the village.</li>
+    <li>Led a project to build shelters for birds around the city.</li>
+    <li>Actively took part in the anti-drug movement, the student movement, and protests in solidarity with Palestine.</li>
+  </ul>
+
+  <div class="activity-gallery">
+    <span class="gallery-label">Photos from these activities</span>
+    <div class="coverflow" id="activityCoverflow">
+      <button class="coverflow-nav prev" id="cfPrev" aria-label="Previous photo">‹</button>
+      <div class="coverflow-track" id="cfTrack">
+        <div class="coverflow-slide"><div class="photo-slot"><img src="https://i.ibb.co/GvQmc2vS/IMG-6103.jpg" alt="Activity photo 1" loading="lazy" decoding="async"></div></div>
+        <div class="coverflow-slide"><div class="photo-slot"><img src="https://i.ibb.co/nJ7r4xh/IMG-6105.jpg" alt="Activity photo 2" loading="lazy" decoding="async"></div></div>
+        <div class="coverflow-slide"><div class="photo-slot"><img src="https://i.ibb.co/x8SG4MHm/IMG-6106.jpg" alt="Activity photo 3" loading="lazy" decoding="async"></div></div>
+        <div class="coverflow-slide"><div class="photo-slot"><img src="https://i.ibb.co/fG0WCF00/IMG-6104.jpg" alt="Activity photo 4" loading="lazy" decoding="async"></div></div>
+        <div class="coverflow-slide"><div class="photo-slot"><img src="https://i.ibb.co/ffPFfgM/IMG-6051.jpg" alt="Activity photo 5" loading="lazy" decoding="async"></div></div>
+        <div class="coverflow-slide"><div class="photo-slot"><img src="https://i.ibb.co/QhQvWKF/IMG-6050.jpg" alt="Activity photo 6" loading="lazy" decoding="async"></div></div>
+        <div class="coverflow-slide"><div class="photo-slot"><img src="https://i.ibb.co/201ZkSMs/IMG-6049.jpg" alt="Activity photo 7" loading="lazy" decoding="async"></div></div>
+        <div class="coverflow-slide"><div class="photo-slot"><img src="https://i.ibb.co.com/ds0cm6Z2/boarding-pass-md-mizanur-rahman.jpg" alt="Activity photo 8" loading="lazy" decoding="async"></div></div>
+      </div>
+      <button class="coverflow-nav next" id="cfNext" aria-label="Next photo">›</button>
+    </div>
+    <p class="coverflow-hint">‹ swipe or use the arrows ›</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SKILLS
+     ============================================================ -->
+<section id="skills" class="reveal">
+  <span class="eyebrow">Entry 06 — Skills</span>
+  <h2>Skills</h2>
+  <div class="skill-tags">
+    <span>Leadership</span>
+    <span>Public Speaking</span>
+    <span>HTML</span>
+    <span>Basic Python</span>
+    <span>Prompt Engineering</span>
+    <span>Gemini</span>
+    <span>Claude</span>
+  </div>
+</section>
+
+<!-- ============================================================
+     CONTACT
+     ============================================================ -->
+<section id="contact" class="reveal">
+  <span class="eyebrow">Entry 07 — Contact</span>
+  <h2>Contact</h2>
+  <p>Have a project in mind, or just want to say hi? Reach out through either of these.</p>
+
+  <div class="contact-grid">
+    <a class="contact-card" href="mailto:mizanurmm2004@gmail.com">
+      <span class="contact-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="5" width="18" height="14" rx="2.5"></rect>
+          <path d="M4 6.5l8 6 8-6"></path>
+        </svg>
+      </span>
+      <span class="contact-body">
+        <span class="contact-label">Email</span>
+        <span class="contact-value">mizanurmm2004@gmail.com</span>
+      </span>
+      <span class="contact-go" aria-hidden="true">→</span>
+    </a>
+
+    <a class="contact-card" href="https://github.com/mizanurmm2004-hue" target="_blank" rel="noopener">
+      <span class="contact-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="8 6 3 12 8 18"></polyline>
+          <polyline points="16 6 21 12 16 18"></polyline>
+        </svg>
+      </span>
+      <span class="contact-body">
+        <span class="contact-label">GitHub</span>
+        <span class="contact-value">See all of my coding work</span>
+      </span>
+      <span class="contact-go" aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>
+
+<footer>
+  © Md. Mizanur Rahman — a journal website built from field notes
+</footer>
+
+<!-- Lightbox — used by Education certificate/marksheet thumbnails -->
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Close image">✕</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+
+<script>
+  // ============================================================
+  // Book-opening interaction — logic unchanged from the original
+  // ============================================================
+  const cover = document.getElementById('cover');
+  const openBtn = document.getElementById('openBtn');
+
+  function openBook(){
+    cover.classList.add('open');
+  }
+
+  openBtn.addEventListener('click', openBook);
+
+  cover.addEventListener('click', function(e){
+    if(e.target !== openBtn){ openBook(); }
+  });
+
+  // ============================================================
+  // Philosophy box "See more / See less" toggle — unchanged
+  // ============================================================
+  const theoryText = document.getElementById('theoryText');
+  const theoryToggle = document.getElementById('theoryToggle');
+  if(theoryText && theoryToggle){
+    theoryToggle.addEventListener('click', () => {
+      const isExpanded = theoryText.classList.toggle('expanded');
+      theoryToggle.textContent = isExpanded ? 'See less ↑' : 'See more ↓';
+    });
+  }
+
+  // ============================================================
+  // Nav — buttons scrollIntoView() + active-tab highlighting on
+  // scroll. Same behaviour as the original, just restyled.
+  // ============================================================
+  const tabButtons = Array.from(document.querySelectorAll('nav.tabs button'));
+  const sections = tabButtons
+    .map(btn => document.getElementById(btn.dataset.target))
+    .filter(Boolean);
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      if(target){
+        target.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+    });
+  });
+
+  const highlightActiveTab = () => {
+    let currentId = sections[0] ? sections[0].id : null;
+    const scrollPos = window.scrollY + window.innerHeight * 0.3;
+    sections.forEach(sec => {
+      if(sec.offsetTop <= scrollPos){
+        currentId = sec.id;
+      }
+    });
+    tabButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.target === currentId);
+    });
+  };
+
+  window.addEventListener('scroll', highlightActiveTab, {passive:true});
+  window.addEventListener('load', highlightActiveTab);
+
+  // ============================================================
+  // NEW — Dark mode toggle (additive feature, doesn't touch any
+  // existing logic above). Preference is remembered per-browser.
+  // ============================================================
+  const themeToggle = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+  const root = document.documentElement;
+
+  function applyTheme(theme){
+    if(theme === 'dark'){
+      root.setAttribute('data-theme', 'dark');
+      themeIcon.textContent = '☀️';
+    } else {
+      root.removeAttribute('data-theme');
+      themeIcon.textContent = '🌙';
+    }
+  }
+
+  const savedTheme = localStorage.getItem('journal-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+
+  themeToggle.addEventListener('click', () => {
+    const isDark = root.getAttribute('data-theme') === 'dark';
+    const next = isDark ? 'light' : 'dark';
+    applyTheme(next);
+    localStorage.setItem('journal-theme', next);
+  });
+
+  // ============================================================
+  // NEW — gentle scroll-reveal for each section (progressive
+  // enhancement only; all content is already in the HTML and
+  // fully visible/readable if JS is disabled).
+  // ============================================================
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!prefersReducedMotion && 'IntersectionObserver' in window){
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          entry.target.classList.add('in-view');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, {threshold:0.12});
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('in-view'));
+  }
+  // ============================================================
+  // NEW — shimmer-to-fade image reveal (works for every .photo-slot
+  // image across Education, Projects, and Activities). Purely visual;
+  // if JS is off the images are still there and fully visible.
+  // ============================================================
+  function markImageLoaded(img){
+    img.classList.add('loaded');
+    const slot = img.closest('.photo-slot');
+    if(slot) slot.classList.add('loaded');
+  }
+  document.querySelectorAll('.photo-slot img').forEach(img => {
+    if(img.complete && img.naturalWidth > 0){
+      markImageLoaded(img);
+    } else {
+      img.addEventListener('load', () => markImageLoaded(img));
+      img.addEventListener('error', () => markImageLoaded(img)); // don't shimmer forever on a broken link
+    }
+  });
+
+  // ============================================================
+  // NEW — Education lightbox (click a certificate/marksheet thumbnail
+  // to see it full-size)
+  // ============================================================
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxClose = document.getElementById('lightboxClose');
+
+  function openLightbox(src, alt){
+    lightboxImg.src = src;
+    lightboxImg.alt = alt || '';
+    lightbox.classList.add('open');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox(){
+    lightbox.classList.remove('open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+  lightboxClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', (e) => { if(e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeLightbox(); });
+
+  // ============================================================
+  // NEW — Certificate slider (Education section). Cross-fades a
+  // blurred background, the certificate/marksheet photo, and a
+  // caption for each item, with numbered dots + arrow navigation.
+  // Colors/fonts all come from the same design tokens as the rest
+  // of the page (light/dark aware automatically).
+  // ============================================================
+  const certSlides = [
+    { src:'https://i.ibb.co/vCsBDC8x/IMG-6057.jpg',  alt:'PSC Certificate',  tag:'PSC · 2017',        caption:'This is my PSC Certificate.' },
+    { src:'https://i.ibb.co/twXz9ZgZ/IMG-6058.jpg',  alt:'JSC Certificate',  tag:'JSC · 2020',        caption:'This is my JSC Certificate.' },
+    { src:'https://i.ibb.co/Xk3bftzT/IMG-6055.jpg',  alt:'SSC Certificate',  tag:'SSC · 2022–2023',   caption:'This is my SSC Certificate.' },
+    { src:'https://i.ibb.co/hJYVbh4r/IMG-6056.jpg',  alt:'SSC Marksheet',    tag:'SSC · 2022–2023',   caption:'This is my SSC Marksheet.' },
+    { src:'https://i.ibb.co/TDPSCGP7/IMG-6053.jpg',  alt:'HSC Certificate',  tag:'HSC · 2024–2025',   caption:'This is my HSC Certificate.' },
+    { src:'https://i.ibb.co/gMrrF4SV/IMG-6054.jpg',  alt:'HSC Marksheet',    tag:'HSC · 2024–2025',   caption:'This is my HSC Marksheet.' }
+  ];
+
+  (function initCertSlider(){
+    const root = document.getElementById('certSlider');
+    if(!root) return;
+
+    const bgImg = document.getElementById('certBg');
+    const stageImg = document.getElementById('certStageImg');
+    const captionInner = document.getElementById('certCaptionInner');
+    const tagEl = document.getElementById('certCaptionTag');
+    const textEl = document.getElementById('certCaptionText');
+    const dotsWrap = document.getElementById('certDots');
+    const prevBtn = document.getElementById('certPrev');
+    const nextBtn = document.getElementById('certNext');
+
+    let current = 0;   // current slide index
+    let timer;
+    let busy = false;  // blocks overlapping transitions from ever mismatching
+
+    certSlides.forEach((s, i) => {
+      const dot = document.createElement('span');
+      dot.className = 'cert-dot' + (i === 0 ? ' active' : '');
+      dot.innerHTML = `<span class="cert-dot-num">${i + 1}</span>`;
+      dot.addEventListener('click', () => { goTo(i); restart(); });
+      dotsWrap.appendChild(dot);
+    });
+
+    // Renders slide `index` immediately — image src, caption, and
+    // dots are all set from the exact same slide object in one go,
+    // so they can never point at different slides.
+    function renderNow(index, direction){
+      const slide = certSlides[index];
+      bgImg.src = slide.src;
+      stageImg.src = slide.src;
+      stageImg.alt = slide.alt;
+      stageImg.onclick = () => openLightbox(slide.src, slide.alt);
+
+      tagEl.textContent = slide.tag;
+      textEl.textContent = slide.caption;
+      dotsWrap.querySelectorAll('.cert-dot').forEach((d, i) => d.classList.toggle('active', i === index));
+
+      captionInner.classList.remove('cert-in-up', 'cert-in-down');
+      void captionInner.offsetWidth; // restart animation
+      if(direction) captionInner.classList.add(direction === 'up' ? 'cert-in-up' : 'cert-in-down');
+    }
+
+    // Fades the current photo out, swaps everything while it's
+    // invisible, then fades the new photo in — the swap only ever
+    // happens while nothing is on screen, so there's no window
+    // where an old image and a new caption (or vice versa) show
+    // together.
+    function goTo(index, direction){
+      if(busy || index === current) return;
+      busy = true;
+      if(!direction){
+        direction = (index > current || (current === certSlides.length - 1 && index === 0)) ? 'up' : 'down';
+      }
+      current = index;
+
+      bgImg.classList.add('fading');
+      stageImg.classList.add('fading');
+
+      setTimeout(() => {
+        renderNow(current, direction);
+        stageImg.classList.remove('fading');
+        bgImg.classList.remove('fading');
+        busy = false;
+      }, 350);
+    }
+
+    function next(){ goTo((current + 1) % certSlides.length, 'up'); }
+    function prev(){ goTo((current - 1 + certSlides.length) % certSlides.length, 'down'); }
+    function restart(){ clearInterval(timer); timer = setInterval(next, 4500); }
+
+    prevBtn.addEventListener('click', () => { prev(); restart(); });
+    nextBtn.addEventListener('click', () => { next(); restart(); });
+
+    // first paint, no fade needed
+    renderNow(0);
+    restart();
+
+    root.addEventListener('mouseenter', () => clearInterval(timer));
+    root.addEventListener('mouseleave', restart);
+
+    let startX = 0, dragging = false;
+    root.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; dragging = true; clearInterval(timer); }, {passive:true});
+    root.addEventListener('touchend', (e) => {
+      if(!dragging) return;
+      const diff = e.changedTouches[0].clientX - startX;
+      if(Math.abs(diff) > 40){ diff < 0 ? next() : prev(); }
+      dragging = false;
+      restart();
+    });
+  })();
+
+  // ============================================================
+  // NEW — Coverflow carousel for the Activities photo gallery.
+  // Buttons + swipe both move the "active" index; positions are
+  // recalculated with a subtle offset/scale/rotate per step.
+  // Loops infinitely (after the last photo it wraps to the first,
+  // and before the first it wraps to the last) and autoplays, while
+  // still responding to manual clicks/buttons/swipe.
+  // ============================================================
+  const cfTrack = document.getElementById('cfTrack');
+  if(cfTrack){
+    const cfSlides = Array.from(cfTrack.querySelectorAll('.coverflow-slide'));
+    const cfPrev = document.getElementById('cfPrev');
+    const cfNext = document.getElementById('cfNext');
+    const cfCount = cfSlides.length;
+    let cfActive = 0;
+    let cfTimer;
+
+    // shortest signed distance from i to cfActive on a circular track,
+    // so slides wrap around visually instead of just disappearing
+    function cfOffset(i){
+      let offset = i - cfActive;
+      if(offset > cfCount / 2) offset -= cfCount;
+      if(offset < -cfCount / 2) offset += cfCount;
+      return offset;
+    }
+
+    function renderCoverflow(){
+      cfSlides.forEach((slide, i) => {
+        const offset = cfOffset(i);
+        const abs = Math.abs(offset);
+        const translateX = offset * 92;
+        const scale = Math.max(1 - abs * 0.16, 0.6);
+        const rotate = offset * -10;
+        const opacity = abs > 3 ? 0 : 1 - abs * 0.22;
+        slide.style.transform = `translateX(${translateX}px) scale(${scale}) rotateY(${rotate}deg)`;
+        slide.style.opacity = opacity;
+        slide.style.zIndex = 10 - abs;
+        slide.style.pointerEvents = abs > 3 ? 'none' : 'auto';
+      });
+    }
+
+    function cfGoTo(i){
+      cfActive = ((i % cfCount) + cfCount) % cfCount; // always wraps, both directions
+      renderCoverflow();
+    }
+    function cfNextSlide(){ cfGoTo(cfActive + 1); }
+    function cfPrevSlide(){ cfGoTo(cfActive - 1); }
+    function cfRestart(){ clearInterval(cfTimer); cfTimer = setInterval(cfNextSlide, 3000); }
+
+    cfSlides.forEach((slide, i) => {
+      const img = slide.querySelector('img');
+      slide.addEventListener('click', () => {
+        if(i !== cfActive){
+          cfGoTo(i);
+          cfRestart();
+        } else if(img){
+          openLightbox(img.src, img.alt);
+        }
+      });
+    });
+    cfPrev.addEventListener('click', () => { cfPrevSlide(); cfRestart(); });
+    cfNext.addEventListener('click', () => { cfNextSlide(); cfRestart(); });
+
+    // swipe / drag support
+    let cfStartX = 0, cfDragging = false;
+    cfTrack.addEventListener('touchstart', (e) => {
+      cfStartX = e.touches[0].clientX; cfDragging = true; clearInterval(cfTimer);
+    }, {passive:true});
+    cfTrack.addEventListener('touchend', (e) => {
+      if(!cfDragging) return;
+      const diff = e.changedTouches[0].clientX - cfStartX;
+      if(Math.abs(diff) > 40){
+        diff < 0 ? cfNextSlide() : cfPrevSlide();
+      }
+      cfDragging = false;
+      cfRestart();
+    });
+
+    // autoplay pauses on hover/focus so it doesn't fight the user,
+    // and picks back up once they're done
+    const cfRoot = document.getElementById('activityCoverflow');
+    cfRoot.addEventListener('mouseenter', () => clearInterval(cfTimer));
+    cfRoot.addEventListener('mouseleave', cfRestart);
+
+    renderCoverflow();
+    cfRestart();
+  }
+</script>
+
+</body>
+</html>
